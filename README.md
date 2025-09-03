@@ -8,16 +8,16 @@ The Final Fantasy Bot Project (FFBot) is currently documented for Fedora Linux (
 
 Install the FCEUX emulator using [snapd](https://snapcraft.io/install/fceux-gui/fedora). At the time of writing, the `fceux-gui` package was not available for Fedora 43 with the `dnf` package manager.
 
-### Install `lunajson` Package via LUARocks
+### Install **lunajson** Package via LUARocks
 
-The main LUA daemon requires the ability to manipulate JSON which is not native to LUA. We need to install and configure `lunajson`.
+The main LUA daemon requires the ability to manipulate JSON which is not native to LUA. We need to install and configure **lunajson**.
 
-* Install `luarocks` using homebrew:
+* Install **luarocks** using homebrew:
 ```
 brew install luarocks
 ```
 
-* Use `luarocks` to install the `lunajson` package:
+* Use luarocks to install the **lunajson** package:
 ```
 luarocks install lunajson
 ```
@@ -34,7 +34,7 @@ export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/l
 ./ffbot.sh
 ```
 
-* The script assumes the emulator command is `fceux-gui`, to run FFBot with a different emulator command if needed, provide the command as an argument (for example, if the needed emulator command is simply `fceux`):
+* The script assumes the emulator command is `fceux-gui`. To run FFBot with a different emulator command if needed, provide the command as an argument (for example, if the needed emulator command is simply `fceux`):
 ```
 ./ffbot.sh fceux
 ```
