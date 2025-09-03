@@ -6,23 +6,35 @@ The Final Fantasy Bot Project (FFBot) is currently documented for Fedora Linux (
 
 ### Install the FCEUX Emulator
 
-Install the FCEUX emulator using [snapd](https://snapcraft.io/install/fceux-gui/fedora). At the time of writing, the `fceux-gui` package was not available for Fedora 43 with the `dnf` package manager. 
+Install the FCEUX emulator using [snapd](https://snapcraft.io/install/fceux-gui/fedora). At the time of writing, the `fceux-gui` package was not available for Fedora 43 with the `dnf` package manager.
 
-### Create a RAMDisk
+### Install `lunajson` Package via LUARocks
 
-We will create a RAMdisk in memory since the FCEUX emulator will need to rapidly read and write data to a disk for the FFBot to read and write to the NES memory via LUA scripts. This will happen much faster on a RAMdisk than a physical folder. The FFBot LUA scripts will dump memory information from the NES emulator for the bot to read, and the bot will dump LUA scripts for the emulator to read and execute.
+The main LUA daemon requires the ability to manipulate JSON which is not native to LUA. We need to install and configure `lunajson`.
 
-* Create a mount point:
+* Install `luarocks` using homebrew:
 ```
-sudo mkdir /mnt/ramdisk-ffbot
-```
-
-* Mount the tmpfs filesystem (change the `size` attribute depending on your available system resources since the LLM will also take a large portion of physical memory):
-```
-sudo mount -t tmpfs -o size=512M tmpfs /mnt/ramdisk-ffbot
+brew install luarocks
 ```
 
-* Create a placeholder execution script. The FFBot LUA daemon requires it to be present, even if empty.
+* Use `luarocks` to install the `lunajson` package:
 ```
-touch /mnt/ramdisk-ffbot/execute.lua
+luarocks install lunajson
+```
+
+* Determine the location where **lunajson.lua** was installed. Open the **ffbot.sh** bash script and update the exported `LUA_PACKAGE_DIR` environment variable accordingly. On Fedora 43 the location was:
+```
+export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
+```
+
+### Run the FFBot
+
+* From the root project folder, run the **ffbot.sh** script in a terminal:
+```
+./ffbot.sh
+```
+
+* The script assumes the emulator command is `fceux-gui`, to run FFBot with a different emulator command if needed, provide the command as an argument (for example, if the needed emulator command is simply `fceux`):
+```
+./ffbot.sh fceux
 ```
