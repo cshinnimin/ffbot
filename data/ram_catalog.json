@@ -164,7 +164,7 @@
             }
         },
 
-        "0x006140" {
+        "0x006140": {
             "name": "Character 2 Class",
             "description": "This is the class of Character 2. It defines which weapons, armor and spells the character can use. It may also define special abilities, such as the Thief's special ability to run from battle more easily than other characters.",
             "type": "hex",
@@ -400,7 +400,7 @@
             "description": "This is the low byte of Character 3's maximum HP (Hit Points). Maximum HP is the highest amount of HP a character can have. It can normally be increased only by leveling up. The decimal total of Maximum HP is calculated as (High Byte * 256) + Low Byte.",
             "type": "hex",
             "values": {
-                "description": "Value from 0x00 to 0xFF representing the low byte of Maximum HP. The decimal total of Maximum HP is calculated as (High Byte * 256) + Low Byte.",
+                "description": "Value from 0x00 to 0xFF representing the low byte of Maximum HP. The decimal total of Maximum HP is calculated as (High Byte * 256) + Low Byte."
             }
         },
         "0x00618D": {
@@ -667,7 +667,6 @@
             }
         }
     },
-
     "lookups": {
         "Character Classes": {
             "0x00": { "value": "0x00", "meaning": "Fighter" },

@@ -15,5 +15,7 @@ sudo umount --quiet $RAMDISK_DIR
 sudo mount -t tmpfs -o size=$RAMDISK_SIZE tmpfs $RAMDISK_DIR
 
 touch $RAMDISK_DIR/execute.lua
+touch $RAMDISK_DIR/ram_contents.json
+cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 
 eval "${1:-fceux-gui}"
