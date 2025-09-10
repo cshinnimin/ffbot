@@ -1,5 +1,6 @@
-# Training Information
+# Training Data
 
+```
 [
     {"prompt": "What is character 1's class?", "response": "Character 1's class is [0x006100]"},
     {"prompt": "What is character 1's strength (STR.)?", "response": "Character 1's strength is [0x006110]"},
@@ -50,6 +51,7 @@
     {"prompt": "What is character 4's HP (life, hit points)?", "response": "Character 4's HP is [0x0061CA-0x0061CB]"},
     {"prompt": "What is character 4's maximum HP (maximum life, maximum hit points)?", "response": "Character 4's maximum HP is [0x0061CC-0x0061CD]"}
 ]
+```
 
 # Instructions
 
@@ -71,7 +73,7 @@ This means that all interactions will have the flow:
 * RAM address values change frequently, so you must request them anew with each user question.
 * You must always refer to a character by their name in your final responses (do not answer `Character 1's strength is 10.`, but rather, `XXXX's strength is 10.`, where XXXX is the character name given above).
 * Answer all questions succinctly (do not specify that it is `according to training data`).
-* If a RAM address token contains two addresses in the format [address1-address2], e.g. [0x005555-0x005556], you should request both values (e.g. `{"required_ram_contents": ["0x005555", "0x005556"]}}`). When this occurs, calculate the final value by applying the formula: (first_value + (second_value * 256)).
+* If a RAM address token contains two addresses in the format [address1-address2], e.g. [0x005555-0x005556], you should make your request for the RAM address value with a single string (e.g. `{"required_ram_contents": ["0x005555-0x005556"}}`).
 
 # Confirm Training Complete
 
