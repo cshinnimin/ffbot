@@ -3,9 +3,10 @@ import React from 'react';
 interface ChatInputProps {
   onSend: (message: string) => void;
   onRestartLlm: () => void;
+  inputSpinnerOn?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinnerOn }) => {
   // Local state for this presentational component to manage the input field
   const [input, setInput] = React.useState("");
 
@@ -30,20 +31,27 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm }) => {
             handleSend();
           }
         }}
+        disabled={inputSpinnerOn}
+        aria-disabled={inputSpinnerOn}
+        style={inputSpinnerOn ? { cursor: 'default' } : undefined}
       />
       <div className="flex justify-end gap-2">
         <button
           className="btn rounded-lg bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300"
           type="button"
           onClick={onRestartLlm}
+          disabled={inputSpinnerOn}
+          aria-disabled={inputSpinnerOn}
         >
           Restart LLM
         </button>
         <button
-          className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800"
+          className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800 flex items-center justify-center min-w-[64px]"
           onClick={handleSend}
+          disabled={inputSpinnerOn}
+          aria-disabled={inputSpinnerOn}
         >
-          Send
+          {inputSpinnerOn ? <span className="loading loading-spinner loading-sm"></span> : 'Send'}
         </button>
       </div>
     </div>
