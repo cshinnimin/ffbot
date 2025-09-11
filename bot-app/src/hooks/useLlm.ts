@@ -24,6 +24,7 @@ export function useLlm() {
     }]);
 
     // TODO: later we will need to return JSON.parse(response.message.content).message
+    console.log(response.message.content);
     return response.message.content;
   }, []);
 
