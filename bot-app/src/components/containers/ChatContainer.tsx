@@ -7,10 +7,15 @@ import { useAppMessages } from '../../context/AppMessagesContext';
 function ChatContainer() {
   const { appMessages, addAppMessage } = useAppMessages();
 
+  const handleSend = (message: string) => {
+    // messages from ChatInput are always from the User
+    addAppMessage('User', message);
+  };
+
   return (
     <ChatLayout>
       <ChatWindow appMessages={appMessages} />
-      <ChatInput onSend={addAppMessage} />
+      <ChatInput onSend={handleSend} />
     </ChatLayout>
   );
 }

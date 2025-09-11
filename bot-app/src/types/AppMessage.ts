@@ -1,4 +1,6 @@
+export type AppPersona = 'User' | 'Bot';
+
 export interface AppMessage {
-  persona: 'User' | 'Bot';
+  persona: AppPersona;
   message: string;
 }

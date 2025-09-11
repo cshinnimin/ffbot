@@ -1,4 +1,6 @@
+export type LlmRole = 'user' | 'assistant';
+
 export interface LlmMessage {
-  role: 'user' | 'assistant';
+  role: LlmRole;
   content: string;
 }

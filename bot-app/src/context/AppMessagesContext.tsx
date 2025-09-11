@@ -1,10 +1,10 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AppMessage } from '../types/AppMessage';
+import type { AppMessage, AppPersona } from '../types/AppMessage';
 
 interface MessagesContextType {
   appMessages: AppMessage[];
-  addAppMessage: (userMessage: string) => void;
+  addAppMessage: (persona: AppPersona, message: string) => void;
 }
 
 const AppMessageContext = createContext<MessagesContextType | undefined>(undefined);
@@ -25,10 +25,10 @@ export const AppMessagesProvider = ({ children }: { children: ReactNode }) => {
     }
   ]);
 
-  const addAppMessage = (userMessage: string) => {
+  const addAppMessage = (persona: AppPersona, message: string) => {
     setAppMessages(prevAppMessages => prevAppMessages.concat({
-      persona: 'User',
-      message: userMessage
+      persona,
+      message
     }));
   };
 
