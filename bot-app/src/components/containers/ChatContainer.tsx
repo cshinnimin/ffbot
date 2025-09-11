@@ -14,12 +14,13 @@ function ChatContainer() {
   const { sendLlmMessage } = useLlm();
 
   // now define any behaviours we need
-  const handleSend = (message: string) => {
+  const handleSend = async (message: string) => {
     // messages from ChatInput are always from the User
     const appMessage = { persona: 'User' as const, message };
-    
     addAppMessage('User', message); // add message to appMessages in store
-    sendLlmMessage(convertAppMessageToLlmMessage(appMessage)); // send message to LLM
+
+    const llmResponse = await sendLlmMessage(convertAppMessageToLlmMessage(appMessage));
+    addAppMessage('Bot', llmResponse);
   };
 
   return (
