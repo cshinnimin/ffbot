@@ -5,6 +5,7 @@ import type { LlmMessage, LlmRole } from '../types/LlmMessage';
 interface LlmMessagesContextType {
   llmMessages: LlmMessage[];
   addLlmMessage: (role: LlmRole, llmMessage: string) => void;
+  clearLlmMessages: () => void;
 }
 
 const LlmMessageContext = createContext<LlmMessagesContextType | undefined>(undefined);
@@ -18,7 +19,6 @@ export const useLlmMessages = () => {
 };
 
 export const LlmMessagesProvider = ({ children }: { children: ReactNode }) => {
-
   const [llmMessages, setLlmMessages] = useState<LlmMessage[]>([]);
 
   const addLlmMessage = (role: LlmRole, llmMessage: string) => {
@@ -28,8 +28,12 @@ export const LlmMessagesProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const clearLlmMessages = () => {
+    setLlmMessages([]);
+  };
+
   return (
-    <LlmMessageContext.Provider value={{ llmMessages, addLlmMessage }}>
+    <LlmMessageContext.Provider value={{ llmMessages, addLlmMessage, clearLlmMessages }}>
       {children}
     </LlmMessageContext.Provider>
   );
