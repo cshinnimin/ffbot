@@ -28,6 +28,8 @@ export function useLlm() {
   }, []);
 
   // Streaming LLM message
+  // TODO: currently not used, but here for future use, may require modifications
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sendLlmMessageStream = useCallback(async (llmMessage: LlmMessage, onChunk: (chunk: string) => void) => {
     const conversation = [...llmMessages, llmMessage];
 
