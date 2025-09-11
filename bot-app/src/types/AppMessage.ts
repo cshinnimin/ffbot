@@ -1,4 +1,4 @@
-export interface Message {
+export interface AppMessage {
   persona: 'User' | 'Bot';
   message: string;
 }

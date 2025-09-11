@@ -1,40 +1,40 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Message } from '../types/Message';
+import type { AppMessage } from '../types/AppMessage';
 
 interface MessagesContextType {
-  messages: Message[];
-  addMessage: (userMessage: string) => void;
+  appMessages: AppMessage[];
+  addAppMessage: (userMessage: string) => void;
 }
 
-const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
+const AppMessageContext = createContext<MessagesContextType | undefined>(undefined);
 
-export const useMessages = () => {
-  const context = useContext(MessagesContext);
+export const useAppMessages = () => {
+  const context = useContext(AppMessageContext);
   if (!context) {
-    throw new Error('useMessages must be used within a MessagesProvider');
+    throw new Error('useAppMessages must be used within an AppMessagesProvider');
   }
   return context;
 };
 
-export const MessagesProvider = ({ children }: { children: ReactNode }) => {
-  const [messages, setMessages] = useState<Message[]>([
+export const AppMessagesProvider = ({ children }: { children: ReactNode }) => {
+  const [appMessages, setAppMessages] = useState<AppMessage[]>([
     {
       persona: 'User',
       message: 'Hello, this is a hardcoded message!'
     }
   ]);
 
-  const addMessage = (userMessage: string) => {
-    setMessages(prevMessages => prevMessages.concat({
+  const addAppMessage = (userMessage: string) => {
+    setAppMessages(prevAppMessages => prevAppMessages.concat({
       persona: 'User',
       message: userMessage
     }));
   };
 
   return (
-    <MessagesContext.Provider value={{ messages, addMessage }}>
+    <AppMessageContext.Provider value={{ appMessages, addAppMessage }}>
       {children}
-    </MessagesContext.Provider>
+    </AppMessageContext.Provider>
   );
 };

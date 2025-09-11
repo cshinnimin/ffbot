@@ -1,17 +1,17 @@
 
 import React from 'react';
 import ChatMessage from './ChatMessage';
-import type { Message } from '../../types/Message';
+import type { AppMessage } from '../../types/AppMessage';
 
 interface ChatWindowProps {
-  messages: Message[];
+  appMessages: AppMessage[];
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ appMessages }) => {
   return (
     <div className="w-full">
-      {messages.map((message, index) => (
-        <ChatMessage key={index} persona={message.persona} message={message.message} />
+      {appMessages.map((appMessage, index) => (
+        <ChatMessage key={index} persona={appMessage.persona} message={appMessage.message} />
       ))}
     </div>
   );

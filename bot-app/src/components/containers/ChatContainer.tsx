@@ -2,15 +2,15 @@
 import ChatInput from '../presentational/ChatInput';
 import ChatWindow from '../presentational/ChatWindow';
 import ChatLayout from '../presentational/ChatLayout';
-import { useMessages } from '../../context/MessagesContext';
+import { useAppMessages } from '../../context/MessagesContext';
 
 function ChatContainer() {
-  const { messages, addMessage } = useMessages();
+  const { appMessages, addAppMessage } = useAppMessages();
 
   return (
     <ChatLayout>
-      <ChatWindow messages={messages} />
-      <ChatInput onSend={addMessage} />
+      <ChatWindow appMessages={appMessages} />
+      <ChatInput onSend={addAppMessage} />
     </ChatLayout>
   );
 }
