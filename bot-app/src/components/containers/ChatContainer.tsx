@@ -1,12 +1,10 @@
-
-
 import React from 'react';
 import ChatInput from '../presentational/ChatInput';
 import ChatWindow from '../presentational/ChatWindow';
 import ChatLayout from '../presentational/ChatLayout';
 import { useAppMessages } from '../../context/AppMessagesContext';
 import { useLlm, convertAppMessageToLlmMessage } from '../../hooks/useLlm';
-
+import falconTrainingMessage from '../../assets/training/falcon_3b.md?raw';
 
 function ChatContainer() {
   // first import what we need from context/state
