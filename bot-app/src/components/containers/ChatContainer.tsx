@@ -23,10 +23,14 @@ function ChatContainer() {
     addAppMessage('Bot', llmResponse);
   };
 
+  const handleRestartLlm = () => {
+    
+  };
+
   return (
     <ChatLayout>
       <ChatWindow appMessages={appMessages} />
-      <ChatInput onSend={handleSend} />
+      <ChatInput onSend={handleSend} onRestartLlm={handleRestartLlm} />
     </ChatLayout>
   );
 }

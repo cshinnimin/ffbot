@@ -2,9 +2,10 @@ import React from 'react';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onRestartLlm: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm }) => {
   // Local state for this presentational component to manage the input field
   const [input, setInput] = React.useState("");
 
@@ -30,9 +31,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
           }
         }}
       />
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
         <button
-          className="btn btn-primary rounded-lg"
+          className="btn rounded-lg bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300"
+          type="button"
+          onClick={onRestartLlm}
+        >
+          Restart LLM
+        </button>
+        <button
+          className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800"
           onClick={handleSend}
         >
           Send
