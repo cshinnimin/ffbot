@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ChatMessage from './ChatMessage';
 import type { AppMessage } from '../../types/AppMessage';

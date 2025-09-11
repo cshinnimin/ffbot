@@ -2,7 +2,7 @@
 import ChatInput from '../presentational/ChatInput';
 import ChatWindow from '../presentational/ChatWindow';
 import ChatLayout from '../presentational/ChatLayout';
-import { useAppMessages } from '../../context/MessagesContext';
+import { useAppMessages } from '../../context/AppMessagesContext';
 
 function ChatContainer() {
   const { appMessages, addAppMessage } = useAppMessages();

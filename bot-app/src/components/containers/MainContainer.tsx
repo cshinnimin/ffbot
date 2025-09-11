@@ -1,7 +1,7 @@
 
 import ChatContainer from './ChatContainer';
 import ViewPort from '../presentational/ViewPort';
-import { AppMessagesProvider } from '../../context/MessagesContext';
+import { AppMessagesProvider } from '../../context/AppMessagesContext';
 
 const MainContainer: React.FC = () => {
   return (
