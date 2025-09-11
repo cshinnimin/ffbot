@@ -3,15 +3,23 @@ import ChatInput from '../presentational/ChatInput';
 import ChatWindow from '../presentational/ChatWindow';
 import ChatLayout from '../presentational/ChatLayout';
 import { useAppMessages } from '../../context/AppMessagesContext';
+import { useLlm, convertAppMessageToLlmMessage } from '../../hooks/useLlm';
+
 
 function ChatContainer() {
-  // first set up what we need from context/state
+  // first import what we need from context/state
   const { appMessages, addAppMessage } = useAppMessages();
+
+  // second, import what we need from hooks
+  const { sendLlmMessage } = useLlm();
 
   // now define any behaviours we need
   const handleSend = (message: string) => {
     // messages from ChatInput are always from the User
-    addAppMessage('User', message);
+    const appMessage = { persona: 'User' as const, message };
+    
+    addAppMessage('User', message); // add message to appMessages in store
+    sendLlmMessage(convertAppMessageToLlmMessage(appMessage)); // send message to LLM
   };
 
   return (
