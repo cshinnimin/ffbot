@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ChatContainer from './ChatContainer';
 import ViewPort from '../presentational/ViewPort';
 
 interface MainContainerState {
@@ -20,7 +21,7 @@ class MainContainer extends Component<{}, MainContainerState> {
     return (
        <>
           <ViewPort>
-            
+            <ChatContainer />
           </ViewPort>
        </>
     )
