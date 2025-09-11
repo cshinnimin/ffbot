@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import { Component } from 'react'
 import ChatContainer from './ChatContainer';
 import ViewPort from '../presentational/ViewPort';
 

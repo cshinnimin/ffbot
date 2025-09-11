@@ -1,29 +1,37 @@
-import React, { Component } from 'react'
-import ViewPort from '../presentational/ViewPort';
+
+import { Component } from 'react'
 import ChatInput from '../presentational/ChatInput';
 import ChatWindow from '../presentational/ChatWindow';
 import ChatLayout from '../presentational/ChatLayout';
+import type { Message } from '../../types/Message';
 
 interface ChatContainerState {
-  conversations: string[];
+  messages: Message[];
 }
 
 class ChatContainer extends Component<{}, ChatContainerState> {
   state: ChatContainerState = {
-    conversations: []
+    messages: [
+      {persona: 'User',
+        message: 'Hello, this is a hardcoded message!'
+      }
+    ]
   }
 
-  addConversation = () => {
+  addMessage = () => {
     this.setState(prevState => ({
-      conversations: prevState.conversations.concat('Foo')
+      messages: prevState.messages.concat({
+        persona: 'User',
+        message: 'Foo'
+      })
     }))
   }
 
   render() {
     return (
       <ChatLayout>
-        <ChatWindow />
-        <ChatInput onSend={this.addConversation} />
+        <ChatWindow messages={this.state.messages} />
+        <ChatInput onSend={this.addMessage} />
       </ChatLayout>
     )
   }
