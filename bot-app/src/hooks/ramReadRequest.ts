@@ -22,8 +22,7 @@ export function useRamRequest() {
 			content: JSON.stringify({ ram_contents: ramValuesMap }),
 		};
 
-		//const conversation = [...llmMessages, ramReadResponseMessage];
-        conversation = [...conversation, ramReadResponseMessage];
+		conversation = [...conversation, ramReadResponseMessage];
 		const response = await getOllamaResponse(conversation, false);
 
 		const responseJson = JSON.parse(response.message.content);
