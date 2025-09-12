@@ -19,7 +19,6 @@ sudo mount -t tmpfs -o size=$RAMDISK_SIZE tmpfs $RAMDISK_DIR
 # set up RAMdisk initial state
 touch $RAMDISK_DIR/execute.lua
 touch $RAMDISK_DIR/ram_contents.json
-cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 
 # load emulator
 eval "${1:-fceux-gui}"

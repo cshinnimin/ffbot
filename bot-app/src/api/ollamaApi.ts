@@ -15,7 +15,7 @@ export async function getOllamaResponse(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'falcon3:3b',
+        model: 'llama3.2:3b',
         messages: conversation,
         stream,
         options: {

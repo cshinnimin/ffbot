@@ -24,8 +24,10 @@ export function useLlm() {
     addLlmMessage(llmMessage.role, llmMessage.content);
     addLlmMessage('assistant', response.message.content);
 
-    // TODO: later we will need to return JSON.parse(response.message.content).message
-    console.log(response.message.content);
+    // TODO : later we will need to parse the content and determine whether
+    // the response is a final answer or a request to use the RRR or RWR modules
+    // e.g.: JSON.parse(response.message.content)
+
     return response.message.content;
   }, [llmMessages, addLlmMessage]);
 
