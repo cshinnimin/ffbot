@@ -18,12 +18,7 @@ export const useAppMessages = () => {
 };
 
 export const AppMessagesProvider = ({ children }: { children: ReactNode }) => {
-  const [appMessages, setAppMessages] = useState<AppMessage[]>([
-    {
-      persona: 'User',
-      message: 'Hello, this is a hardcoded message!'
-    }
-  ]);
+  const [appMessages, setAppMessages] = useState<AppMessage[]>([]);
 
   const addAppMessage = (persona: AppPersona, message: string) => {
     setAppMessages(prevAppMessages => prevAppMessages.concat({
