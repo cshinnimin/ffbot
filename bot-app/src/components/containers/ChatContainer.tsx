@@ -20,7 +20,7 @@ function ChatContainer() {
   // now define any behaviours we need
   const handleSend = async (message: string) => {
     setInputSpinner(true);
-    
+
     try {
       // messages from ChatInput are always from the User
       const appMessage = { persona: 'User' as const, message };

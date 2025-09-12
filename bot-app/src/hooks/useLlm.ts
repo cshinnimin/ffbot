@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
 import { getOllamaResponse } from '../api/ollamaApi';
+import { useLlmMessages } from '../context/LlmMessagesContext';
 
 // Converts AppMessage to LlmMessage
 export function convertAppMessageToLlmMessage(appMessage: AppMessage): LlmMessage {
@@ -12,21 +13,21 @@ export function convertAppMessageToLlmMessage(appMessage: AppMessage): LlmMessag
 }
 
 export function useLlm() {
-  const [llmMessages, setLlmMessages] = useState<LlmMessage[]>([]);
+  // import the state and actions we need from context
+  const { llmMessages, addLlmMessage, clearLlmMessages } = useLlmMessages();
 
   // Non-streaming LLM message
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
     const conversation = [...llmMessages, llmMessage];
     const response = await getOllamaResponse(conversation, false);
 
-    setLlmMessages((prev) => [...prev, {
-        role: 'assistant', content: response.message.content
-    }]);
+    addLlmMessage(llmMessage.role, llmMessage.content);
+    addLlmMessage('assistant', response.message.content);
 
     // TODO: later we will need to return JSON.parse(response.message.content).message
     console.log(response.message.content);
     return response.message.content;
-  }, []);
+  }, [llmMessages, addLlmMessage]);
 
   // Streaming LLM message
   // TODO: currently not used, but here for future use, may require modifications
@@ -41,12 +42,11 @@ export function useLlm() {
     });
 
     // After streaming is done, update state
-    setLlmMessages((prev) => [...prev, {
-      role: 'assistant', content: fullResponse
-    }]);
+    addLlmMessage(llmMessage.role, llmMessage.content);
+    addLlmMessage('assistant', fullResponse);
 
     return fullResponse;
-  }, []);
+  }, [llmMessages, addLlmMessage]);
 
-  return { llmMessages, sendLlmMessage, sendLlmMessageStream };
+  return { llmMessages, sendLlmMessage, sendLlmMessageStream, clearLlmMessages };
 }

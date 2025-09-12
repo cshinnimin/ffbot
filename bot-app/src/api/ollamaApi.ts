@@ -18,6 +18,9 @@ export async function getOllamaResponse(
         model: 'falcon3:3b',
         messages: conversation,
         stream,
+        options: {
+          temperature: 0.4,
+        },
       }),
     });
 
