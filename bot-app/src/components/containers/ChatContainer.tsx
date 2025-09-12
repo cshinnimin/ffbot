@@ -6,7 +6,6 @@ import { useAppMessages } from '../../context/AppMessagesContext';
 import { useLlm, convertAppMessageToLlmMessage } from '../../hooks/useLlm';
 import { useLlmMessages } from '../../context/LlmMessagesContext';
 import falconTrainingMessage from '../../assets/symlinks/training/falcon_3b.md?raw';
-import { getRamContents } from '../../api/nesApi';
 
 function ChatContainer() {
   // first import what we need from context/state

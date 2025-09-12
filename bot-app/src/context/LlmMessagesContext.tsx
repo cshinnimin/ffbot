@@ -12,9 +12,11 @@ const LlmMessageContext = createContext<LlmMessagesContextType | undefined>(unde
 
 export const useLlmMessages = () => {
   const context = useContext(LlmMessageContext);
+  
   if (!context) {
     throw new Error('useLlmMessages must be used within an LlmMessagesProvider');
   }
+  
   return context;
 };
 

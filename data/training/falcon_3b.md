@@ -126,7 +126,7 @@ return 1 -- so that main daemon knows a script was executed and to clean up
 
 * FFBot:
 ```
-{"required_ram_contents": {"0x006150"}}
+{"required_ram_contents": ["0x006150"]}
 ```
 
 * Bot App (RRM):
@@ -136,7 +136,7 @@ return 1 -- so that main daemon knows a script was executed and to clean up
 
 * FFBot:
 ```
-{"answer": {"Glyn's strength is 12."}}
+{"answer": "Glyn's strength is 12."}
 ```
 
 ## Example 2: A command that requires updates to RAM
