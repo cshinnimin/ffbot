@@ -21,6 +21,7 @@ export async function getOllamaResponse(
         options: {
           temperature: 0.4,
         },
+        keep_alive: '30m'
       }),
     });
 

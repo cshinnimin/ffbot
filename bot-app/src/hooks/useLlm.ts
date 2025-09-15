@@ -5,6 +5,8 @@ import { getOllamaResponse } from '../api/ollamaApi';
 import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../context/LlmMessagesContext';
 
+const DEBUG_MODE = true;
+
 // Converts AppMessage to LlmMessage
 export function convertAppMessageToLlmMessage(appMessage: AppMessage): LlmMessage {
   return {
@@ -37,6 +39,10 @@ export function useLlm() {
     let responseContent = '';
     try {
       const ffbotResponse = JSON.parse(response.message.content);
+      if (DEBUG_MODE) { 
+        console.log('useLlm - sendLlmMessage - ffbotResponse:');
+        console.log(ffbotResponse);
+      }
 
       if (ffbotResponse.required_ram_contents) {
         // is a Ram Read Request (RRR), delegate to ramReadRequest hook
@@ -47,9 +53,13 @@ export function useLlm() {
       } else {
         responseContent = response.message.content;
       }
-    } catch (e) {
-      // if response is not JSON, just return the raw content
-      return response.message.content;
+    } catch (error) {
+      if (DEBUG_MODE) { 
+        console.log('useLlm - sendLlmMessage - JSON parse error');
+        console.log(response.message.content);
+      }
+      
+      return String(error).replace('Error: ', '');
     }
 
     return responseContent;
