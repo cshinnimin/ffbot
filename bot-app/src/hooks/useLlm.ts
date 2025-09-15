@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
 import { getOllamaResponse } from '../api/ollamaApi';
-import { useRamRequest } from './ramReadRequest';
+import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../context/LlmMessagesContext';
 
 // Converts AppMessage to LlmMessage
@@ -12,8 +12,6 @@ export function convertAppMessageToLlmMessage(appMessage: AppMessage): LlmMessag
     content: '{"message": "' + appMessage.message + '"}',
   };
 }
-
-
 
 export function useLlm() {
   // import the state and actions we need from context
