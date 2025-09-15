@@ -4,7 +4,7 @@ import ChatWindow from '../presentational/ChatWindow';
 import ChatLayout from '../presentational/ChatLayout';
 import { useAppMessages } from '../../context/AppMessagesContext';
 import { useLlm, convertAppMessageToLlmMessage } from '../../hooks/useLlm';
-import { useLlmMessages } from '../../context/LlmMessagesContext';
+import { useLlmMessages } from '../../references/LlmMessagesRef';
 import falconTrainingMessage from '../../assets/symlinks/training/falcon_3b.md?raw';
 
 function ChatContainer() {

@@ -2,7 +2,7 @@
 import ChatContainer from './ChatContainer';
 import ViewPort from '../presentational/ViewPort';
 import { AppMessagesProvider } from '../../context/AppMessagesContext';
-import { LlmMessagesProvider } from '../../context/LlmMessagesContext';
+import { LlmMessagesProvider } from '../../references/LlmMessagesRef';
 
 const MainContainer: React.FC = () => {
   return (
