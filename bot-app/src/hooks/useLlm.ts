@@ -4,6 +4,8 @@ import type { LlmMessage } from '../types/LlmMessage';
 import { getOllamaResponse } from '../api/ollamaApi';
 import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
+import { JsonExpectedError } from '../types/Error';
+import { useTraining, CorrectionType } from './useTraining';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -20,6 +22,7 @@ export function useLlm() {
   // import the ref and actions we need from the new reference context
   const { llmMessagesRef, addLlmMessage, clearLlmMessages } = useLlmMessages();
   const { requestRamRead } = useRamRequest();
+  const { issueCorrection } = useTraining();
 
   // Non-streaming LLM message
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
@@ -28,33 +31,53 @@ export function useLlm() {
     addLlmMessage('assistant', response.message.content);
 
     let responseContent = '';
-    try {
-      const ffbotResponse = JSON.parse(response.message.content);
-      if (DEBUG_MODE) {
-        console.log('useLlm - sendLlmMessage - ffbotResponse:');
-        console.log(ffbotResponse);
-      }
+    let ffbotResponse = response.message.content;
+    while (!responseContent) {
+      try {
+        if (DEBUG_MODE) {
+          console.log('%cuseLlm - sendLlmMessage - ffbotResponse:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
+          console.log(ffbotResponse);
+        }
 
-      if (ffbotResponse.required_ram_contents) {
-        // is a Ram Read Request (RRR), delegate to ramReadRequest hook
-        // for now, only one RRR is ever expected at a single time
-        responseContent = await requestRamRead(ffbotResponse.required_ram_contents);
-      } else if (ffbotResponse.answer) {
-        responseContent = ffbotResponse.answer;
-      } else {
-        responseContent = response.message.content;
-      }
-    } catch (error) {
-      if (DEBUG_MODE) {
-        console.log('useLlm - sendLlmMessage - JSON parse error:');
-        console.log(response.message.content);
-      }
+        const ffbotResponseJson = JSON.parse(ffbotResponse);
+        if (DEBUG_MODE) {
+          console.log('%cuseLlm - sendLlmMessage - ffbotResponseJson:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
+          console.log(ffbotResponseJson);
+        }
 
-      return String(error).replace('Error: ', '');
+        if (ffbotResponseJson.required_ram_contents) {
+          // is a Ram Read Request (RRR), delegate to ramReadRequest hook
+          //responseContent = await requestRamRead(ffbotResponseJson.required_ram_contents);
+          ffbotResponse = await requestRamRead(ffbotResponseJson.required_ram_contents);
+        } else if (ffbotResponseJson.answer) {
+          responseContent = ffbotResponseJson.answer;
+        } else {
+          // if we received JSON from the LLM but it had an unknown format,
+          // terminate the loop by setting a generic responseContent
+          responseContent = 'I am Error.'; // throwback to Zelda 2
+        }
+      } catch (error) {
+        if (DEBUG_MODE) {
+          console.log('%cuseLlm - sendLlmMessage - error caught - ffbotResponse:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
+          console.log(ffbotResponse);
+        }
+
+        switch (true) {
+          case error instanceof JsonExpectedError:
+            // Issue corrective training to the LLM for JSON errors, 
+            // then retry parsing the new response at the top of the loop
+            ffbotResponse = await issueCorrection(CorrectionType.JSON_EXPECTED);
+            break;
+          default:
+            // in the default exception case we return the error string
+            // and terminate the loop by setting responseContent
+            responseContent = String(error).replace('Error: ', '');
+        }
+      }
     }
 
     return responseContent;
-  }, [llmMessagesRef, addLlmMessage]);
+  }, [llmMessagesRef, addLlmMessage, issueCorrection, requestRamRead]);
 
   // Streaming LLM message
   // TODO: currently not used, but here for future use, may require modifications
