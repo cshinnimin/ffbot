@@ -14,7 +14,7 @@ import type { ReactNode } from 'react';
 import type { LlmMessage, LlmRole } from '../types/LlmMessage';
 
 interface LlmMessagesRefContextType {
-  llmMessagesRef: React.MutableRefObject<LlmMessage[]>;
+  llmMessagesRef: React.RefObject<LlmMessage[]>;
   addLlmMessage: (role: LlmRole, llmMessage: string) => void;
   clearLlmMessages: () => void;
 }
