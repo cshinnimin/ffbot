@@ -47,12 +47,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
           Restart LLM
         </button>
         <button
-          className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800 flex items-center justify-center min-w-[64px]"
+          className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800 flex items-center justify-center min-w-[80px]"
           onClick={handleSend}
           disabled={inputSpinnerOn}
           aria-disabled={inputSpinnerOn}
         >
-          {inputSpinnerOn ? <span className="loading loading-spinner loading-sm"></span> : 'Send'}
+          {inputSpinnerOn ? (
+            <span className="loading loading-spinner loading-sm"></span>
+          ) : (
+            <span>Send</span>
+          )}
         </button>
       </div>
     </div>
