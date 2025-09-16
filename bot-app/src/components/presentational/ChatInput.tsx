@@ -37,7 +37,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
       />
       <div className="flex justify-end gap-2">
         <button
-          className="btn rounded-lg bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300"
+          className={`btn rounded-lg bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300
+            ${inputSpinnerOn ? 'opacity-50 cursor-not-allowed' : ''}`}
           type="button"
           onClick={onRestartLlm}
           disabled={inputSpinnerOn}
