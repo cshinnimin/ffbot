@@ -2,7 +2,7 @@
 import { useCallback } from 'react';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { getOllamaResponse } from '../api/ollamaApi';
-import { JsonExpectedError } from '../types/Error';
+import { JsonUtils } from '../utils/json';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -39,15 +39,6 @@ export function useTraining() {
 			console.log(response.message.content);
 		}
 
-        let responseJson;
-        try {
-            responseJson = JSON.parse(response.message.content);
-        } catch (error) {
-            throw new JsonExpectedError('I need to recall my training.');
-        }
-
-        // we have already validated the content string is in JSON format,
-		// but consumers expect the format to be a string, so return that
         return response.message.content;
     }, []);
 
