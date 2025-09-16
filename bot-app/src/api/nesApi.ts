@@ -8,7 +8,7 @@ export async function getRamContents() {
     const ram_contents = await ram_contents_resource.json();
     return ram_contents;
   } catch (error) {
-    throw new RamContentsError('Access to game memory (ram_contents.json) failed.');
+    throw new RamContentsError('Access to game memory failed. Make sure LUA daemon is running.');
   }      
 }
 
@@ -21,7 +21,7 @@ export async function getRamValuesMap(addresses: string[]) {
       values[address] = ram_contents[address];
     });
   } catch (error) {
-    throw new RamContentsError('Game memory (ram_contents.json) not in expected format.');
+    throw new RamContentsError('Game memory not in expected format.');
   }
 
   return values;

@@ -24,8 +24,7 @@ while true do
         local ram_contents = "{"
         for i, ram_address in ipairs(RAM_CATALOG.ram_addresses) do
             local decimal_value = memory.readbyte(tonumber(ram_address))
-            local hex_string = string.format("0x%02X", decimal_value)
-            ram_contents = ram_contents .. '"' .. ram_address .. '": "' .. hex_string .. '",'
+            ram_contents = ram_contents .. '"' .. ram_address .. '": "' .. decimal_value .. '",'
         end
          -- remove trailing comma and close JSON object
         ram_contents = ram_contents:sub(1, -2) .. "}"
