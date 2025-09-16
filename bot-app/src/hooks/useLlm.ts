@@ -6,6 +6,7 @@ import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { JsonExpectedError } from '../types/Error';
 import { useTraining, CorrectionType } from './useTraining';
+import { JsonUtils } from '../utils/json';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -39,7 +40,7 @@ export function useLlm() {
           console.log(ffbotResponse);
         }
 
-        const ffbotResponseJson = JSON.parse(ffbotResponse);
+        const ffbotResponseJson = JsonUtils.parse(ffbotResponse);
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - ffbotResponseJson:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
           console.log(ffbotResponseJson);
@@ -71,7 +72,13 @@ export function useLlm() {
           default:
             // in the default exception case we return the error string
             // and terminate the loop by setting responseContent
-            responseContent = String(error).replace('Error: ', '');
+            if (error instanceof Error && error.message) {
+              // if error is of type Error (or inherits from Error), read error.message
+              responseContent = error.message;
+            } else {
+              // otherwise, cast to string and remove "Error: " prefix if present
+              responseContent = String(error).replace('Error: ', '');
+            }
         }
       }
     }

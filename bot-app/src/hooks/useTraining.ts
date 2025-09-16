@@ -2,7 +2,6 @@
 import { useCallback } from 'react';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { getOllamaResponse } from '../api/ollamaApi';
-import { JsonUtils } from '../utils/json';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
