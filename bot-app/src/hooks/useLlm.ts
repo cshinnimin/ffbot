@@ -22,7 +22,7 @@ export function convertAppMessageToLlmMessage(appMessage: AppMessage): LlmMessag
 export function useLlm() {
   // import the ref and actions we need from the new reference context
   const { llmMessagesRef, addLlmMessage, clearLlmMessages } = useLlmMessages();
-  const { requestRamRead } = useRamRequest();
+  const { requestRamRead, requestRamWrite } = useRamRequest();
   const { issueCorrection } = useTraining();
 
   // Non-streaming LLM message
@@ -47,14 +47,17 @@ export function useLlm() {
         }
 
         if (ffbotResponseJson.required_ram_contents) {
-          // is a Ram Read Request (RRR), delegate to ramReadRequest hook
-          //responseContent = await requestRamRead(ffbotResponseJson.required_ram_contents);
+          // is a Ram Read Request (RRR), delegate to useRamRequest hook
           ffbotResponse = await requestRamRead(ffbotResponseJson.required_ram_contents);
+        } else if (ffbotResponseJson.lua_script) {
+          // is a Ram Write Request (RWR), delegate to useRamRequest hook
+          await requestRamWrite(ffbotResponseJson.lua_script, ffbotResponseJson.message);
         } else if (ffbotResponseJson.answer) {
+          // is the LLMs final answer, populate `responseContent` to terminate the loop
           responseContent = ffbotResponseJson.answer;
         } else {
           // if we received JSON from the LLM but it had an unknown format,
-          // terminate the loop by setting a generic responseContent
+          // terminate the loop by setting a generic `responseContent`
           responseContent = 'I am Error.'; // throwback to Zelda 2
         }
       } catch (error) {

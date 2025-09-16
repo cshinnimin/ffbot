@@ -27,6 +27,22 @@ luarocks install lunajson
 export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
 ```
 
+### Install Python and Flask
+
+The React bot app needs the ability to write a file to the RAMdisk in order to write contents back to NES memory. This is accomplished by exposing a simple API endpoint using Python / Flask.
+
+* Install Python and 'pip', Python's package manager:
+```
+sudo dnf update
+sudo dnf install python3 python3-pip
+```
+
+* Install Flask and Flask-CORS (needed for React app to make cross origin request to python API from different port):
+```
+pip install Flask
+pip install Flask-CORS
+```
+
 ### Run the FFBot
 
 * From the root project folder, run the **ffbot.sh** script in a terminal:

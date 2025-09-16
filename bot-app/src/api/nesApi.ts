@@ -1,6 +1,6 @@
 // Utility for communicating with the NES emulator RAM
 
-import { RamContentsError } from "../types/Error";
+import { RamContentsError, FlaskRamWriteError } from "../types/Error";
 
 export async function getRamContents() {
   try {
@@ -25,4 +25,24 @@ export async function getRamValuesMap(addresses: string[]) {
   }
 
   return values;
+}
+
+export async function sendLuaScript(luaScript: string) {
+  // Read port from VITE_FLASK_PORT in .env, default to 5000
+  const port = import.meta.env.VITE_FLASK_PORT || '5000';
+
+  const url = `http://localhost:${port}/write_ram`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ lua_script: luaScript }),
+  });
+
+  if (!response.ok) {
+    throw new FlaskRamWriteError('Failed to write Lua script.');
+  }
+
+  return response.json();
 }

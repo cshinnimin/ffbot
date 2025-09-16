@@ -9,19 +9,26 @@ export async function getOllamaResponse(
   onStreamChunk?: (chunk: string) => void
 ): Promise<any> {
   try {
-    const response = await fetch('http://localhost:11434/api/chat', {
+    // Read port from VITE_LLM_PORT in .env, default to 11434
+    const port = import.meta.env.VITE_LLM_PORT || '11434';
+    const model = import.meta.env.VITE_LLM_MODEL || 'llama3.2:3b';
+    const temperature = import.meta.env.VITE_LLM_TEMPERATURE || '0.4';
+    const keep_alive = import.meta.env.VITE_LLM_KEEP_ALIVE || '30m';
+
+    const url = `http://localhost:${port}/api/chat`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3.2:3b',
+        model: model,
         messages: conversation,
         stream,
         options: {
-          temperature: 0.4,
+          temperature: Number(temperature),
         },
-        keep_alive: '30m'
+        keep_alive: keep_alive
       }),
     });
 

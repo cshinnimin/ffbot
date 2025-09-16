@@ -1,5 +1,5 @@
 
-local EXECUTION_CADENCE = 30 -- NES / FCEUX runs at about 60 frames per second
+local EXECUTION_CADENCE = 60 -- NES / FCEUX runs at about 60 frames per second
 local frame_count = 0
 
 while true do

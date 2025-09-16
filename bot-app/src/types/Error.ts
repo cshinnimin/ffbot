@@ -13,3 +13,11 @@ export class JsonExpectedError extends Error {
     Object.setPrototypeOf(this, JsonExpectedError.prototype);
   }
 }
+
+export class FlaskRamWriteError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FlaskRamWriteError";
+    Object.setPrototypeOf(this, FlaskRamWriteError.prototype);
+  }
+}

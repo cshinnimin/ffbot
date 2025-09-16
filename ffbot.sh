@@ -21,5 +21,8 @@ touch $RAMDISK_DIR/execute.lua
 touch $RAMDISK_DIR/ram_contents.json
 cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 
-# load emulator
+# fire python write_ram endpoint and load emulator
+python scripts/python/write_ram.py &
+PYTHON_PID=$!
 eval "${1:-fceux-gui}"
+kill $PYTHON_PID
