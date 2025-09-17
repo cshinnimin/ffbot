@@ -51,7 +51,7 @@ export function useLlm() {
           ffbotResponse = await requestRamRead(ffbotResponseJson.required_ram_contents);
         } else if (ffbotResponseJson.lua_script) {
           // is a Ram Write Request (RWR), delegate to useRamRequest hook
-          await requestRamWrite(ffbotResponseJson.lua_script, ffbotResponseJson.message);
+          responseContent = await requestRamWrite(ffbotResponseJson.lua_script, ffbotResponseJson.answer);
         } else if (ffbotResponseJson.answer) {
           // is the LLMs final answer, populate `responseContent` to terminate the loop
           responseContent = ffbotResponseJson.answer;
