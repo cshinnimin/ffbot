@@ -44,5 +44,5 @@ export async function sendLuaScript(luaScript: string) {
     throw new FlaskRamWriteError('Failed to write Lua script.');
   }
 
-  return response.json();
+  return response.ok;
 }

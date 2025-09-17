@@ -2,7 +2,7 @@
 local EXECUTION_CADENCE = 60 -- NES / FCEUX runs at about 60 frames per second
 local frame_count = 0
 
-print("😈😈😈 FFBot main LUA daemon loaded... 😈😈😈")
+print("😈😈😈 LUA Daemon: loaded and ready... 😈😈😈")
 
 while true do
     if (frame_count < EXECUTION_CADENCE) then
@@ -42,7 +42,7 @@ while true do
         if (result) then
              -- clear contents of execute.lua
             io.open(RAMDISK_DIR .. "execute.lua","w"):close()
-            print("Executed script from bot")
+            print("😈😈😈 Lua Daemon: executed script from bot 😈😈😈")
         end
     end
 
