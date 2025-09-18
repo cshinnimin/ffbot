@@ -98,7 +98,11 @@ The main purpose of this training data is to provide the FFBot with questions it
     {"prompt": "At what memory address is Blyx's absorb (ABSORB)?", "response": "Blyx's absorb is at memory address 0x0061E2."},
     {"prompt": "At what memory address is Blyx's evade percentage (EVADE %)?", "response": "Blyx's evade percentage is at memory address 0x0061E3."},
     {"prompt": "At what memory address is Blyx's HP (life, hit points)?", "response": "Blyx's HP is at memory address 0x0061CA-0x0061CB."},
-    {"prompt": "At what memory address is Blyx's maximum HP (maximum life, maximum hit points)?", "response": "Blyx's maximum HP is at memory address 0x0061CC-0x0061CD."}
+    {"prompt": "At what memory address is Blyx's maximum HP (maximum life, maximum hit points)?", "response": "Blyx's maximum HP is at memory address 0x0061CC-0x0061CD."},
+    {"prompt": "At what memory address can I tell if we are in battle?", "response": "We can tell if we are in battle by memory address 0x00001c. If the value is 65 (hex 41), we are in battle. If not, we are not."},
+    {"prompt": "At what memory address can I tell if we are outside (on the world map), or inside (in a town, cave or dungeon)?", "response": "We can tell if we are outside if memory address 0x0000F8 is set to 8 (hex 0x08). We are inside if it is set to 10 (hex 0x0A)."},
+    {"prompt": "At what memory address can I determine our mode of transportation?", "response": "We can determine our mode of transportation with memory address 0x000042. If the value is 1 (hex 0x01), we are walking. If the value is 2 (hex 0x02), we are in the canoe. If the value is 4 (hex 0x04), we are in the ship on the sea."},
+    {"prompt": "At what memory address can I tell if we are in a shop?", "response": "We can tell if we are in a shop by memory address 0x000050. If the value is 1 (hex 0x01), we are in a shop. If the value is 0, we are not."}
 ]
 ```
 

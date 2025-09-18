@@ -39,8 +39,20 @@ function ChatContainer() {
 
     try {
       clearLlmMessages();
+
+      const startTime = Date.now();
       const llmResponse = await sendLlmMessage({ role: 'user', content: falconTrainingMessage });
-      addAppMessage('Bot', llmResponse);
+      const endTime = Date.now();
+
+      const elapsedMs = endTime - startTime;
+      const minutes = Math.floor(elapsedMs / 60000);
+      const seconds = Math.floor((elapsedMs % 60000) / 1000);
+      let timeString = '';
+      if (minutes > 0 || seconds > 0) {
+        timeString = ` Training took ${minutes > 0 ? minutes + ' minute' + (minutes !== 1 ? 's' : '') + ' and ' : ''}${seconds} second${seconds !== 1 ? 's' : ''}.`;
+      }
+
+      addAppMessage('Bot', llmResponse + timeString);
     } finally {
       setFullSpinner(false);
     }
