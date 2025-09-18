@@ -5,7 +5,7 @@ import ChatLayout from '../presentational/ChatLayout';
 import { useAppMessages } from '../../context/AppMessagesContext';
 import { useLlm, convertAppMessageToLlmMessage } from '../../hooks/useLlm';
 import { useLlmMessages } from '../../references/LlmMessagesRef';
-import falconTrainingMessage from '../../assets/symlinks/training/falcon_3b.md?raw';
+import falconTrainingMessage from '../../assets/symlinks/training/v1_0_llama.md?raw';
 
 function ChatContainer() {
   // first import what we need from context/state
