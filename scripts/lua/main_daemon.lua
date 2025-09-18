@@ -18,15 +18,18 @@ while true do
         package.path = package.path .. ";" .. LUA_PACKAGE_DIR .. "?.lua"
         local JSON = require("lunajson") -- load lunajson for JSON parsing
 
+
         local ram_catalog_file = io.open(RAMDISK_DIR .. "ram_catalog.json", "r")
         local RAM_CATALOG = JSON.decode(ram_catalog_file:read("*all"))
         -- note keys are NOT sorted in order by their hex values
         ram_catalog_file:close()
 
         local ram_contents = "{"
-        for i, ram_address in ipairs(RAM_CATALOG.ram_addresses) do
+        for i, entry in ipairs(RAM_CATALOG.catalog) do
+            local ram_address = entry.address
             local decimal_value = memory.readbyte(tonumber(ram_address))
-            ram_contents = ram_contents .. '"' .. ram_address .. '": "' .. decimal_value .. '",'
+            local hex_value = string.format("%02X", decimal_value)
+            ram_contents = ram_contents .. '"' .. ram_address .. '": "0x' .. hex_value .. '",'
         end
          -- remove trailing comma and close JSON object
         ram_contents = ram_contents:sub(1, -2) .. "}"
