@@ -51,6 +51,7 @@ This training data provides you, the FFBot, with questions you can ask yourself 
 
 ```
 [
+    {"prompt": "Are we in battle?", "response": "Check 0x00001C"},
     {"prompt": "What class is (or simply 'what IS') <character_1>?", "response": "Check 0x006100"},
     {"prompt": "What class is (or simply 'what IS') <character_2>?", "response": "Check 0x006140"},
     {"prompt": "What class is (or simply 'what IS') <character_3>?", "response": "Check 0x006180"},
@@ -95,6 +96,36 @@ This training data provides you, the FFBot, with questions you can ask yourself 
     {"prompt": "How much evade percentage does <character_2> have (how good is <character_2> at dodging)?", "response": "Check 0x006163"},
     {"prompt": "How much evade percentage does <character_3> have (how good is <character_3> at dodging)?", "response": "Check 0x0061A3"},
     {"prompt": "How much evade percentage does <character_4> have (how good is <character_4> at dodging)?", "response": "Check 0x0061E3"},
+
+    {"prompt": "Is there an enemy in slot 1?", "response": "Check 0x006BD3. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 2?", "response": "Check 0x006BE7. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 3?", "response": "Check 0x006BFB. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 4?", "response": "Check 0x006C0F. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 5?", "response": "Check 0x006C23. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 6?", "response": "Check 0x006C37. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 7?", "response": "Check 0x006C4B. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 8?", "response": "Check 0x006C5F. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "Is there an enemy in slot 9?", "response": "Check 0x006C73. If the value is blank, it means no, anything else means yes."},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 1?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006BD3"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 2?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006BE7"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 3?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006BFB"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 4?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006C0F"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 5?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006C23"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 6?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006C37"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 7?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006C4B"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 8?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006C5F"},
+    {"prompt": "What kind (type) of enemy (monster) is enemy 9?", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006C73"},
+    {"prompt": "Summarize the enemies (monsters) we are fighting.", "response": "Check 0x00001C. If we are not in battle, respond that there are no enemies. Otherwise check 0x006BD3, 0x006BE7, 0x006BFB, 0x006C0F, 0x006C23, 0x006C37, 0x006C4B, 0x006C5F and 0x006C73. Summarize how many of each enemy we are fighting. If there are more than one of the same kind of enemy, specify how many of each."},
+    {"prompt": "How much life (HP) does enemy 1 have?", "response": "Check 0x006BD5 and 0x006BD6 and add them together."},
+    {"prompt": "How much life (HP) does enemy 2 have?", "response": "Check 0x006BE9 and 0x006BEA and add them together."},
+    {"prompt": "How much life (HP) does enemy 3 have?", "response": "Check 0x006BFD and 0x006BFE and add them together."},
+    {"prompt": "How much life (HP) does enemy 4 have?", "response": "Check 0x006C11 and 0x006C12 and add them together."},
+    {"prompt": "How much life (HP) does enemy 5 have?", "response": "Check 0x006C25 and 0x006C26 and add them together."},
+    {"prompt": "How much life (HP) does enemy 6 have?", "response": "Check 0x006C39 and 0x006C3A and add them together."},
+    {"prompt": "How much life (HP) does enemy 7 have?", "response": "Check 0x006C4D and 0x006C4E and add them together."},
+    {"prompt": "How much life (HP) does enemy 8 have?", "response": "Check 0x006C61 and 0x006C62 and add them together."},
+    {"prompt": "How much life (HP) does enemy 9 have?", "response": "Check 0x006C75 and 0x006C76 and add them together."},
+    {"prompt": "Summarize how much life all of the enemies (monsters) have.", "response": "For each of the 9 enemies, check the enemy type. If there is no enemy in that slot, ignore it. If there is an enemy in that slot, check how much life it has and add that to your summary."}
 ]
 ```
 

@@ -444,13 +444,13 @@
             "0xC4": "!",
             "0xC5": "?"
         }},
-        { "key": "monster_type", "default": "no monster exists in this slot", "map": {
-            "0x20": "Imp",
-            "0x48": "Wolf",
-            "0x34": "Gr.Imp",
-            "0x64": "Hydra", 
-            "0x3C": "Ocho",
-            "0xEC": "Caribe"
+        { "key": "monster_type", "default": "", "map": {
+            "0x20": "an Imp",
+            "0x48": "a Wolf",
+            "0x34": "a Gr.Imp",
+            "0x64": "a Hydra", 
+            "0x3C": "an Ocho",
+            "0xEC": "a Caribe"
         }},
         { "key": "monster_status", "default": "unknown", "map": {
             "0x00": "alive, healthy",
