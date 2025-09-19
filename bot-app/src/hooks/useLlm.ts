@@ -35,8 +35,6 @@ export function useLlm() {
     const response = await getOllamaResponse(llmMessagesRef.current, false);
     addLlmMessage('assistant', response.message.content);
 
-    let foo = false;
-
     let responseContent = '';
     let ffbotResponse = response.message.content;
     while (!responseContent) {
@@ -46,9 +44,7 @@ export function useLlm() {
           console.log(ffbotResponse);
         }
 
-        if (foo) debugger;
         const ffbotResponseJson = JsonUtils.parse(ffbotResponse);
-        if (foo) debugger;
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - ffbotResponseJson:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
           console.log(ffbotResponseJson);
@@ -93,15 +89,11 @@ export function useLlm() {
             ffbotResponse = await issueCorrection(CorrectionType.RAM_ADDRESSES_NOT_ALLOWED);
             break;
           case error instanceof FinalMessageContainsSquareBracketsError:
-            foo = true;
-            debugger;
             ffbotResponse = await issueCorrection(CorrectionType.SQUARE_BRACKETS_NOT_ALLOWED);
-            debugger;
             break;
           default:
             // in the default exception case we return the error string
             // and terminate the loop by setting responseContent
-            debugger;
             if (error instanceof Error && error.message) {
               // if error is of type Error (or inherits from Error), read error.message
               responseContent = error.message;
@@ -113,7 +105,6 @@ export function useLlm() {
       }
     }
 
-    if (foo) debugger;
     return responseContent;
   }, [llmMessagesRef, addLlmMessage, issueCorrection, requestRamRead]);
 
