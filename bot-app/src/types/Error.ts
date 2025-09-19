@@ -21,3 +21,19 @@ export class FlaskRamWriteError extends Error {
     Object.setPrototypeOf(this, FlaskRamWriteError.prototype);
   }
 }
+
+export class FinalMessageContainsRamAddressesError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FinalMessageContainsRamAddressesError";
+    Object.setPrototypeOf(this, FinalMessageContainsRamAddressesError.prototype);
+  }
+}
+
+export class FinalMessageContainsSquareBracketsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FinalMessageContainsSquareBracketsError";
+    Object.setPrototypeOf(this, FinalMessageContainsSquareBracketsError.prototype);
+  }
+}

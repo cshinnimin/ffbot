@@ -4,9 +4,13 @@ import type { LlmMessage } from '../types/LlmMessage';
 import { getOllamaResponse } from '../api/ollamaApi';
 import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
-import { JsonExpectedError } from '../types/Error';
 import { useTraining, CorrectionType } from './useTraining';
 import { JsonUtils } from '../utils/json';
+import { 
+  FinalMessageContainsRamAddressesError, 
+  FinalMessageContainsSquareBracketsError, 
+  JsonExpectedError 
+} from '../types/Error';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -31,6 +35,8 @@ export function useLlm() {
     const response = await getOllamaResponse(llmMessagesRef.current, false);
     addLlmMessage('assistant', response.message.content);
 
+    let foo = false;
+
     let responseContent = '';
     let ffbotResponse = response.message.content;
     while (!responseContent) {
@@ -40,7 +46,9 @@ export function useLlm() {
           console.log(ffbotResponse);
         }
 
+        if (foo) debugger;
         const ffbotResponseJson = JsonUtils.parse(ffbotResponse);
+        if (foo) debugger;
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - ffbotResponseJson:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
           console.log(ffbotResponseJson);
@@ -60,6 +68,15 @@ export function useLlm() {
           // terminate the loop by setting a generic `responseContent`
           responseContent = 'I am Error.'; // throwback to Zelda 2
         }
+
+        if (responseContent.includes('0x00')) {
+          responseContent = ''; // clear final response, LLM requires a correction
+          throw new FinalMessageContainsRamAddressesError('');
+        }
+        if (responseContent.includes('[')) {
+          responseContent = ''; // clear final response, LLM requires a correction
+          throw new FinalMessageContainsSquareBracketsError('');
+        }
       } catch (error) {
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - error caught - ffbotResponse:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
@@ -72,9 +89,19 @@ export function useLlm() {
             // then retry parsing the new response at the top of the loop
             ffbotResponse = await issueCorrection(CorrectionType.JSON_EXPECTED);
             break;
+          case error instanceof FinalMessageContainsRamAddressesError:
+            ffbotResponse = await issueCorrection(CorrectionType.RAM_ADDRESSES_NOT_ALLOWED);
+            break;
+          case error instanceof FinalMessageContainsSquareBracketsError:
+            foo = true;
+            debugger;
+            ffbotResponse = await issueCorrection(CorrectionType.SQUARE_BRACKETS_NOT_ALLOWED);
+            debugger;
+            break;
           default:
             // in the default exception case we return the error string
             // and terminate the loop by setting responseContent
+            debugger;
             if (error instanceof Error && error.message) {
               // if error is of type Error (or inherits from Error), read error.message
               responseContent = error.message;
@@ -86,6 +113,7 @@ export function useLlm() {
       }
     }
 
+    if (foo) debugger;
     return responseContent;
   }, [llmMessagesRef, addLlmMessage, issueCorrection, requestRamRead]);
 
