@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
-import { getOllamaResponse } from '../api/ollamaApi';
+import { getOllamaResponse, parseResponse } from '../api/ollamaApi';
 import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { useTraining, CorrectionType } from './useTraining';
@@ -33,10 +33,10 @@ export function useLlm() {
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
     addLlmMessage(llmMessage.role, llmMessage.content);
     const response = await getOllamaResponse(llmMessagesRef.current, false);
-    addLlmMessage('assistant', response.message.content);
+    addLlmMessage('assistant', parseResponse(response));
 
     let responseContent = '';
-    let ffbotResponse = response.message.content;
+    let ffbotResponse = parseResponse(response);
     while (!responseContent) {
       try {
         if (DEBUG_MODE) {
