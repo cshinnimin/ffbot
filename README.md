@@ -78,10 +78,10 @@ ollama serve
 
 * In a separate terminal window, from the root project folder, run the **ffbot.sh** script:
 ```
-./ffbot.sh
+bash ./ffbot.sh
 ```
 
 * The script assumes the emulator command is `fceux-gui`. To run FFBot with a different emulator command if needed, provide the command as an argument (for example, if the needed emulator command is simply `fceux`):
 ```
-./ffbot.sh fceux
+bash ./ffbot.sh fceux
 ```
