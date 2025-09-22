@@ -43,9 +43,40 @@ pip install Flask
 pip install Flask-CORS
 ```
 
+### Configure React App .env
+
+Rename `bot-app/.env-sample` to `bot-app/.env` and update any configuration variables.
+
+* `VITE_DEBUG_MODE`: When debug mode is set to `TRUE`, debugging information will be logged to the console.
+* `VITE_LLM_URL`: The chat completion endpoint for the LLM of your choice.
+* `VITE_LLM_API_KEY`: The API key for the LLM of your choice, if applicable. Local LLMs running on Ollama do not require an API key. The FFBot app was tested using openrouter.ai. This is where you will store your API key for that service. It may work with others but has not been tested.
+* `VITE_LLM_MODEL`: The model of your chosen LLM.
+* `VITE_LLM_THROTTLE_DELAY`: In milliseconds, a forced delay between LLM chat completion requests. Use this to throttle the app if your chosen model is returning 429 "Too Many Request" responses. The FFBot app may require multiple chat completion requests under the hood for each response seen in the chat window, so actual response times in the app may be longer than this value.
+* `VITE_LLM_TEMPERATURE`: The temparature setting for the LLM, from 0.0 to 2.0. Lower values tune the LLM to be more focused, higher values tune it to be more creative.
+* `VITE_LLM_KEEP_ALIVE`: Amount of time in minutes (with format `[num_minutes]s`) that the specified LLM will remain in memory. Useful to set if running a local LLM.
+* `VITE_FLASK_PORT`: The port the microservice used by the bot app to write data to the RAMDisk is running on. Flask apps are port 5000 by default.
+
+### Install a Local LLM, if Desired
+
+Local LLMs have limitations. The app was tested using a variety of Ollama LLMs with 3B parameters or less (so that they could run on a modest laptop with 8GB of RAM). Duriung testing it was found that only Llama 3.2 (3B) could reasonably ingest the instructions and understand it's role as the "FFBot". If you want to install and run Llama 3.2 locally:
+
+```
+sudo dnf install ollama
+ollama serve
+ollama run llama3.2:3b
+```
+
+Note that the `run` command downloads the model to your hard disk and will require several GB of space. Once you have downloaded the model once, you will not need to execute the run command again to use FFBot, only the serve command.
+
 ### Run the FFBot
 
-* From the root project folder, run the **ffbot.sh** script in a terminal:
+* If you are running a local LLM with Ollama, serve it in a terminal window:
+
+```
+ollama serve
+```
+
+* In a separate terminal window, from the root project folder, run the **ffbot.sh** script:
 ```
 ./ffbot.sh
 ```
