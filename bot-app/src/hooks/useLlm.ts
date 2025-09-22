@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
-import { getOllamaResponse, parseResponse } from '../api/ollamaApi';
+import { getLlmResponse, parseResponse } from '../api/llmApi';
 import { useRamRequest } from './useRamRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { useTraining, CorrectionType } from './useTraining';
@@ -22,7 +22,6 @@ export function convertAppMessageToLlmMessage(appMessage: AppMessage): LlmMessag
   };
 }
 
-
 export function useLlm() {
   // import the ref and actions we need from the new reference context
   const { llmMessagesRef, addLlmMessage, clearLlmMessages } = useLlmMessages();
@@ -32,7 +31,7 @@ export function useLlm() {
   // Non-streaming LLM message
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
     addLlmMessage(llmMessage.role, llmMessage.content);
-    const response = await getOllamaResponse(llmMessagesRef.current, false);
+    const response = await getLlmResponse(llmMessagesRef.current, false);
     addLlmMessage('assistant', parseResponse(response));
 
     let responseContent = '';
@@ -116,7 +115,7 @@ export function useLlm() {
     const conversation = [...llmMessagesRef.current];
 
     let fullResponse = '';
-    await getOllamaResponse(conversation, true, (chunk) => {
+    await getLlmResponse(conversation, true, (chunk) => {
       fullResponse += chunk;
       if (onChunk) onChunk(chunk);
     });

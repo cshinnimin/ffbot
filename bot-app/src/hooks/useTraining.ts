@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useLlmMessages } from '../references/LlmMessagesRef';
-import { getOllamaResponse, parseResponse } from '../api/ollamaApi';
+import { getLlmResponse, parseResponse } from '../api/llmApi';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -34,7 +34,7 @@ export function useTraining() {
           console.log(llmMessagesRef.current);
 		    }
 
-        const response = await getOllamaResponse(llmMessagesRef.current, false);
+  const response = await getLlmResponse(llmMessagesRef.current, false);
         addLlmMessage('assistant', parseResponse(response));
         if (DEBUG_MODE) {
         console.log('%cuseTraining - useTraining - response:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');

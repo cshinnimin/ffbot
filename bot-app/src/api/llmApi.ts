@@ -1,9 +1,9 @@
-// Utility for communicating with the Ollama LLM API
+// Utility for communicating with the LLM API
 // supporting both streaming and non-streaming responses
 
 import type { LlmMessage } from '../types/LlmMessage';
 
-export async function getOllamaResponse(
+export async function getLlmResponse(
   conversation: LlmMessage[],
   stream: boolean = false,
   onStreamChunk?: (chunk: string) => void
