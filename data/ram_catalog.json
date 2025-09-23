@@ -1,7 +1,10 @@
 {
     "catalog": [
         { "address": "0x00001C", "type": "lookup", "description": "Battle flag", "lookup": "battle_flag" },
+        { "address": "0x000027", "type": "number", "description": "Overworld x position", "weight": "1" },
+        { "address": "0x000028", "type": "number", "description": "Overworld y position", "weight": "1" },
         { "address": "0x000042", "type": "lookup", "description": "Transportation type", "lookup": "transport_type" },
+        { "address": "0x000048", "type": "lookup", "description": "Dungeon floor code", "lookup": "dungeon_floor_code" },
         { "address": "0x000050", "type": "lookup", "description": "Shopping flag", "lookup": "shop_flag" },
         { "address": "0x0000F8", "type": "lookup", "description": "Overworld flag", "lookup": "overworld_flag"},
 
@@ -455,6 +458,11 @@
         { "key": "monster_status", "default": "unknown", "map": {
             "0x00": "alive, healthy",
             "0x01": "dead"
+        }},
+        { "key": "dungeon_floor_code", "default": "1F", "map": {
+            "0x20": "Earth Cave, B5",
+            "0x0E": "Gurgu Volcano, 1B",
+            "0x21": "Gurgu Volcano, 2B"
         }}
     ]
 }
