@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import bestiaryData from '../../public/symlinks/ramdisk/bestiary.json';
 import { getLlmResponse, parseResponse } from "../api/llmApi";
@@ -13,17 +13,22 @@ export function useBestiaryRequest() {
   // import llmMessages
 	const { llmMessagesRef, addLlmMessage } = useLlmMessages();
   
-  // Build maps synchronously at module load
-  const bestiary: BestiaryMap = bestiaryData as BestiaryMap;
-  const reverseBestiary: ReverseBestiaryMap = {};
-  for (const [loc, monsters] of Object.entries(bestiary)) {
-    for (const monster of monsters) {
-      if (!reverseBestiary[monster]) reverseBestiary[monster] = [];
-      reverseBestiary[monster].push(loc);
+  // Build maps only once for the app lifecycle, bestiary
+  // information does not change like RAM information does
+  // ( useMemo() caches the information )
+  const { bestiary, reverseBestiary } = useMemo(() => {
+    const bestiary: BestiaryMap = bestiaryData as BestiaryMap;
+    const reverseBestiary: ReverseBestiaryMap = {};
+    for (const [loc, monsters] of Object.entries(bestiary)) {
+      for (const monster of monsters) {
+        if (!reverseBestiary[monster]) reverseBestiary[monster] = [];
+        reverseBestiary[monster].push(loc);
+      }
     }
-  }
+    return { bestiary, reverseBestiary };
+  }, []);
 
-  // Returns a promise to match the async pattern of requestRamRead
+  
   const requestMonstersByLocation = useCallback(async (location: string): Promise<string[]> => {
     const monsters = bestiary[location] || ["no monsters here"];
     addLlmMessage('user', JSON.stringify({monsters: monsters}));

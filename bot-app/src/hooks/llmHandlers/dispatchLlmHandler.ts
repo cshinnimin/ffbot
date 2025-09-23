@@ -1,7 +1,7 @@
 import type { HandlerDeps, LlmHandler } from './types';
 import type { LlmResponse } from '../../types/LlmResponse';
 
-export async function dispatch(
+export async function dispatchLlmHandler(
   ffbotResponseJson: any,
   handlers: LlmHandler[],
   handlerDeps: HandlerDeps
@@ -16,6 +16,7 @@ export async function dispatch(
       };
     }
   }
-  // fallback: unknown format
+
+  // fallback: unknown format, "I am Error" throwback to Zelda 2
   return { answerString: 'I am Error.', transientResponse: '' };
 }

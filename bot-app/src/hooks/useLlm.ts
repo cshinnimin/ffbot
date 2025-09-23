@@ -2,7 +2,7 @@ import { jsonExpectedErrorHandler } from './llmHandlers/errorHandlers/jsonExpect
 import { ramAddressesErrorHandler } from './llmHandlers/errorHandlers/ramAddressesErrorHandler';
 import { squareBracketsErrorHandler } from './llmHandlers/errorHandlers/squareBracketsErrorHandler';
 import { defaultErrorHandler } from './llmHandlers/errorHandlers/defaultErrorHandler';
-import { dispatchError } from './llmHandlers/errorHandlers/dispatchError';
+import { dispatchError as dispatchErrorHandler } from './llmHandlers/errorHandlers/dispatchErrorHandler';
 import type { HandlerDeps, LlmHandler } from './llmHandlers/types';
 import { ramReadHandler } from './llmHandlers/ramReadHandler';
 import { ramWriteHandler } from './llmHandlers/ramWriteHandler';
@@ -10,7 +10,7 @@ import { monsterByLocationHandler } from './llmHandlers/monsterByLocationHandler
 import { locationByMonsterHandler } from './llmHandlers/locationByMonsterHandler';
 import { answerHandler } from './llmHandlers/answerHandler';
 import { useCallback } from 'react';
-import { dispatch } from './llmHandlers/dispatch';
+import { dispatchLlmHandler } from './llmHandlers/dispatchLlmHandler';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
 import { getLlmResponse, parseResponse } from '../api/llmApi';
@@ -93,7 +93,7 @@ export function useLlm() {
         }
 
         // Use handler dispatcher to handle LLM response
-        llmResponse = await dispatch(ffbotResponseJson, handlers, handlerDeps);
+        llmResponse = await dispatchLlmHandler(ffbotResponseJson, handlers, handlerDeps);
 
         if (llmResponse.answerString && llmResponse.answerString.includes('0x00')) {
           llmResponse.answerString = '';
@@ -109,36 +109,12 @@ export function useLlm() {
           console.log(llmResponse.transientResponse);
         }
 
-        llmResponse = await dispatchError(error, errorHandlers, errorHandlerContext);
+        llmResponse = await dispatchErrorHandler(error, errorHandlers, errorHandlerContext);
       }
     }
 
     return llmResponse.answerString;
   }, [llmMessagesRef, addLlmMessage, issueCorrection, requestRamRead]);
 
-  // Streaming LLM message
-  // TODO: currently not used, but here for future use, may require modifications
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendLlmMessageStream = useCallback(async (llmMessage: LlmMessage, onChunk: (chunk: string) => void) => {
-    llmMessagesRef.current.push(llmMessage);
-    const conversation = [...llmMessagesRef.current];
-
-    let fullResponse = '';
-    await getLlmResponse(conversation, true, (chunk) => {
-      fullResponse += chunk;
-      if (onChunk) onChunk(chunk);
-    });
-
-    // After streaming is done, update ref
-    addLlmMessage(llmMessage.role, llmMessage.content);
-    addLlmMessage('assistant', fullResponse);
-    llmMessagesRef.current.push({
-      role: 'assistant',
-      content: fullResponse
-    });
-
-    return fullResponse;
-  }, [llmMessagesRef, addLlmMessage]);
-
-  return { llmMessagesRef, sendLlmMessage, sendLlmMessageStream, clearLlmMessages };
+  return { llmMessagesRef, sendLlmMessage, clearLlmMessages };
 }
