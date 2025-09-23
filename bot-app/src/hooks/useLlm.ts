@@ -1,3 +1,8 @@
+import { jsonExpectedErrorHandler } from './llmHandlers/errorHandlers/jsonExpectedErrorHandler';
+import { ramAddressesErrorHandler } from './llmHandlers/errorHandlers/ramAddressesErrorHandler';
+import { squareBracketsErrorHandler } from './llmHandlers/errorHandlers/squareBracketsErrorHandler';
+import { defaultErrorHandler } from './llmHandlers/errorHandlers/defaultErrorHandler';
+import { dispatchError } from './llmHandlers/errorHandlers/dispatchError';
 import type { HandlerDeps, LlmHandler } from './llmHandlers/types';
 import { ramReadHandler } from './llmHandlers/ramReadHandler';
 import { ramWriteHandler } from './llmHandlers/ramWriteHandler';
@@ -9,6 +14,7 @@ import { dispatch } from './llmHandlers/dispatch';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
 import { getLlmResponse, parseResponse } from '../api/llmApi';
+import type { LlmResponse } from '../types/LlmResponse';
 import { useRamRequest } from './useRamRequest';
 import { useBestiaryRequest } from './useBestiaryRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
@@ -53,75 +59,62 @@ export function useLlm() {
     answerHandler
   ];
 
+  // import error handlers
+  const errorHandlers = [
+    jsonExpectedErrorHandler,
+    ramAddressesErrorHandler,
+    squareBracketsErrorHandler,
+    defaultErrorHandler
+  ];
+  const errorHandlerContext = { issueCorrection, CorrectionType };
+
   // Non-streaming LLM message
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
     addLlmMessage(llmMessage.role, llmMessage.content);
     const response = await getLlmResponse(llmMessagesRef.current, false);
     addLlmMessage('assistant', parseResponse(response));
 
-    let answerString = ''; // main loop will continue until LLM has settled on a final answer
-    let transientResponse = parseResponse(response);
-    while (!answerString) {
+    // Use LlmResponse type to track both answerString and transientResponse
+    let llmResponse: LlmResponse = {
+      answerString: '',
+      transientResponse: parseResponse(response)
+    };
+
+    while (!llmResponse.answerString) {
       try {
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - transientResponse:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
-          console.log(transientResponse);
+          console.log(llmResponse.transientResponse);
         }
 
-        const ffbotResponseJson = JsonUtils.parse(transientResponse);
+        const ffbotResponseJson = JsonUtils.parse(llmResponse.transientResponse);
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - ffbotResponseJson:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
           console.log(ffbotResponseJson);
         }
 
-        // Use dispatch utility to handle LLM response
-        const result = await dispatch(ffbotResponseJson, handlers, handlerDeps);
-        if (typeof result.transientResponse !== 'undefined') 
-          transientResponse = result.transientResponse;
-        if (typeof result.answerString !== 'undefined') 
-          answerString = result.answerString;
+        // Use handler dispatcher to handle LLM response
+        llmResponse = await dispatch(ffbotResponseJson, handlers, handlerDeps);
 
-        if (answerString.includes('0x00')) {
-          answerString = ''; // clear final response, LLM requires a correction
+        if (llmResponse.answerString && llmResponse.answerString.includes('0x00')) {
+          llmResponse.answerString = '';
           throw new FinalMessageContainsRamAddressesError('');
         }
-        if (answerString.includes('[')) {
-          answerString = ''; // clear final response, LLM requires a correction
+        if (llmResponse.answerString && llmResponse.answerString.includes('[')) {
+          llmResponse.answerString = '';
           throw new FinalMessageContainsSquareBracketsError('');
         }
       } catch (error) {
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - error caught - transientResponse:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
-          console.log(transientResponse);
+          console.log(llmResponse.transientResponse);
         }
 
-        switch (true) {
-          case error instanceof JsonExpectedError:
-            // Issue corrective training to the LLM for JSON errors, 
-            // then retry parsing the new response at the top of the loop
-            transientResponse = await issueCorrection(CorrectionType.JSON_EXPECTED);
-            break;
-          case error instanceof FinalMessageContainsRamAddressesError:
-            transientResponse = await issueCorrection(CorrectionType.RAM_ADDRESSES_NOT_ALLOWED);
-            break;
-          case error instanceof FinalMessageContainsSquareBracketsError:
-            transientResponse = await issueCorrection(CorrectionType.SQUARE_BRACKETS_NOT_ALLOWED);
-            break;
-          default:
-            // in the default exception case we return the error string
-            // and terminate the loop by setting answerString
-            if (error instanceof Error && error.message) {
-              // if error is of type Error (or inherits from Error), read error.message
-              answerString = error.message;
-            } else {
-              // otherwise, cast to string and remove "Error: " prefix if present
-              answerString = String(error).replace('Error: ', '');
-            }
-        }
+        llmResponse = await dispatchError(error, errorHandlers, errorHandlerContext);
       }
     }
 
-    return answerString;
+    return llmResponse.answerString;
   }, [llmMessagesRef, addLlmMessage, issueCorrection, requestRamRead]);
 
   // Streaming LLM message

@@ -1,15 +1,21 @@
 import type { HandlerDeps, LlmHandler } from './types';
+import type { LlmResponse } from '../../types/LlmResponse';
 
 export async function dispatch(
   ffbotResponseJson: any,
   handlers: LlmHandler[],
   handlerDeps: HandlerDeps
-): Promise<{ transientResponse?: string; answerString?: any }> {
+): Promise<LlmResponse> {
   for (const handler of handlers) {
     if (handler.canHandle(ffbotResponseJson)) {
-      return handler.handle(ffbotResponseJson, handlerDeps);
+      // Always return a full LlmResponse
+      const result = await handler.handle(ffbotResponseJson, handlerDeps);
+      return {
+        answerString: result.answerString ?? '',
+        transientResponse: result.transientResponse ?? ''
+      };
     }
   }
   // fallback: unknown format
-  return { answerString: 'I am Error.' };
+  return { answerString: 'I am Error.', transientResponse: '' };
 }
