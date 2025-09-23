@@ -2,6 +2,7 @@ import { jsonExpectedErrorHandler } from './llmHandlers/errorHandlers/jsonExpect
 import { ramAddressesErrorHandler } from './llmHandlers/errorHandlers/ramAddressesErrorHandler';
 import { squareBracketsErrorHandler } from './llmHandlers/errorHandlers/squareBracketsErrorHandler';
 import { defaultErrorHandler } from './llmHandlers/errorHandlers/defaultErrorHandler';
+import { bestiaryRequestInvalidFormatErrorHandler } from './llmHandlers/errorHandlers/bestiaryRequestInvalidFormatErrorHandler';
 import { dispatchError as dispatchErrorHandler } from './llmHandlers/errorHandlers/dispatchErrorHandler';
 import type { HandlerDeps, LlmHandler } from './llmHandlers/types';
 import { ramReadHandler } from './llmHandlers/ramReadHandler';
@@ -63,7 +64,8 @@ export function useLlm() {
     jsonExpectedErrorHandler,
     ramAddressesErrorHandler,
     squareBracketsErrorHandler,
-    defaultErrorHandler
+    bestiaryRequestInvalidFormatErrorHandler,
+    defaultErrorHandler,
   ];
   const errorHandlerContext = { issueCorrection, CorrectionType };
 
