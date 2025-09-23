@@ -22,8 +22,7 @@ import { useTraining, CorrectionType } from './useTraining';
 import { JsonUtils } from '../utils/json';
 import { 
   FinalMessageContainsRamAddressesError, 
-  FinalMessageContainsSquareBracketsError, 
-  JsonExpectedError 
+  FinalMessageContainsSquareBracketsError
 } from '../types/Error';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
