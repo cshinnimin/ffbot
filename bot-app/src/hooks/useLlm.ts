@@ -21,10 +21,7 @@ import { useBestiaryRequest } from './useBestiaryRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { useTraining, CorrectionType } from './useTraining';
 import { JsonUtils } from '../utils/json';
-import { 
-  FinalMessageContainsRamAddressesError, 
-  FinalMessageContainsSquareBracketsError
-} from '../types/Error';
+import { validateLlmAnswerString } from '../validators/LlmResponseValidator';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -97,14 +94,8 @@ export function useLlm() {
         // Use handler dispatcher to handle LLM response
         llmResponse = await dispatchLlmHandler(ffbotResponseJson, handlers, handlerDeps);
 
-        if (llmResponse.answerString && llmResponse.answerString.includes('0x00')) {
-          llmResponse.answerString = '';
-          throw new FinalMessageContainsRamAddressesError('');
-        }
-        if (llmResponse.answerString && llmResponse.answerString.includes('[')) {
-          llmResponse.answerString = '';
-          throw new FinalMessageContainsSquareBracketsError('');
-        }
+        // Perform validations on the answerString
+        validateLlmAnswerString(llmResponse.answerString);
       } catch (error) {
         if (DEBUG_MODE) {
           console.log('%cuseLlm - sendLlmMessage - error caught - transientResponse:', 'color: #81aca6; font-size: 14px; font-weight: bold;');
