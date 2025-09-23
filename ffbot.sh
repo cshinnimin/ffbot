@@ -23,6 +23,7 @@ sudo mount -t tmpfs -o size=$RAMDISK_SIZE tmpfs $RAMDISK_DIR
 touch $RAMDISK_DIR/execute.lua
 touch $RAMDISK_DIR/ram_contents.json
 cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
+cp data/bestiary.json $RAMDISK_DIR/bestiary.json
 
 # fire python write_ram endpoint and load emulator
 python scripts/python/write_ram.py &

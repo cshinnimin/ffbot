@@ -3,6 +3,7 @@ import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
 import { getLlmResponse, parseResponse } from '../api/llmApi';
 import { useRamRequest } from './useRamRequest';
+import { useBestiaryRequest } from './useBestiaryRequest';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { useTraining, CorrectionType } from './useTraining';
 import { JsonUtils } from '../utils/json';
@@ -26,6 +27,7 @@ export function useLlm() {
   // import the ref and actions we need from the new reference context
   const { llmMessagesRef, addLlmMessage, clearLlmMessages } = useLlmMessages();
   const { requestRamRead, requestRamWrite } = useRamRequest();
+  const { requestMonstersByLocation, requestLocationsByMonster } = useBestiaryRequest();
   const { issueCorrection } = useTraining();
 
   // Non-streaming LLM message
@@ -55,6 +57,14 @@ export function useLlm() {
         } else if (ffbotResponseJson.lua_script) {
           // is a Ram Write Request (RWR), delegate to useRamRequest hook
           responseContent = await requestRamWrite(ffbotResponseJson.lua_script, ffbotResponseJson.answer);
+        } else if (ffbotResponseJson.required_services?.bestiary?.location) {
+          // is a Monster lookup request (by location)
+          ffbotResponse = await requestMonstersByLocation(
+            ffbotResponseJson.required_services.bestiary.location);
+        } else if (ffbotResponseJson.required_services?.bestiary?.monster) {
+          // is a Monster Location lookup request (by monster)
+          ffbotResponse = await requestLocationsByMonster(
+            ffbotResponseJson.required_services.bestiary.monster);
         } else if (ffbotResponseJson.answer) {
           // is the LLMs final answer, populate `responseContent` to terminate the loop
           responseContent = ffbotResponseJson.answer;
