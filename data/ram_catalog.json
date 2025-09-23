@@ -350,8 +350,8 @@
             "0x41": "in battle"
         }},
         { "key": "transport_type", "default": "on foot", "map": {
-            "0x01": "on foot", "0x02": "canoe",
-            "0x04": "ship, at sea"
+            "0x01": "on land", "0x02": "in the canoe",
+            "0x04": "in the ship, at sea", "0x08": "in the airship"
         }},
         { "key": "shop_flag", "default": "not shopping", "map": {
             "0x00": "not shopping",
@@ -459,10 +459,44 @@
             "0x00": "alive, healthy",
             "0x01": "dead"
         }},
-        { "key": "dungeon_floor_code", "default": "1F", "map": {
+        { "key": "dungeon_floor_code", "default": "1F", "map": {   
+            "0x00": "Cornelia, 1F",
+            "0x08": "Cornelia Castle, 1F",
+            "0x18": "Cornelia Castle, 2F",
+            "0x0C": "Temple of Fiends (Present), 1F",
+            "0x01": "Pravoka, 1F",
+            "0x14": "Matoya's Cave, B1",
+            "0x02": "ElfLand, 1F",
+            "0x09": "Castle of Elf, 1F",
+            "0x0A": "Northwest Castle, 1F",
+            "0x16": "Marsh Cave, B1",
+            "0x1B": "Marsh Cave, B2",
+            "0x1C": "Marsh Cave, B3",
+            "0x13": "Dwarf Cave, B1",
+            "0x03": "Melmond, 1F",
+            "0x3C": "Titan's Tunnel, B1",
+            "0x15": "Sarda's Cave, B1",
+            "0x0D": "Earth Cave, B1",
+            "0x1D": "Earth Cave, B2",
+            "0x1E": "Earth Cave, B3",
+            "0x1F": "Earth Cave, B4",
             "0x20": "Earth Cave, B5",
+            "0x04": "Crescent Lake, 1F",
             "0x0E": "Gurgu Volcano, 1B",
-            "0x21": "Gurgu Volcano, 2B"
+            "0x21": "Gurgu Volcano, 2B",
+            "0x22": "Gurgu Volcano, 3B",
+            "0x23": "Gurgu Volcano, 4B",
+            "0x24": "Gurgu Volcano, 5B",
+            "0x0F": "Ice Cave, B1",
+            "0x25": "Ice Cave, B2",
+            "0x26": "Ice Cave, B3",
+            "0x0B": "Castle of Ordeal, 1F",
+            "0x19": "Castle of Ordeal, 2F",
+            "0x1A": "Castle of Ordeal, 3F",
+            "0x05": "Gaia, 1F",
+            "0x10": "Cardia Islands, B1",
+            "0x06": "Onrac, 1F",
+            "0x12": "Waterfall, 1F"
         }}
     ]
 }
