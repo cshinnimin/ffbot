@@ -1,3 +1,10 @@
+export class BestiaryRequestInvalidFormatError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BestiaryRequestInvalidFormatError";
+    Object.setPrototypeOf(this, BestiaryRequestInvalidFormatError.prototype);
+  }
+}
 export class RamContentsError extends Error {
   constructor(message: string) {
     super(message);

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import bestiaryData from '../../public/symlinks/ramdisk/bestiary.json';
 import { getLlmResponse, parseResponse } from "../api/llmApi";
+import { BestiaryRequestInvalidFormatError } from "../types/Error";
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -30,6 +31,11 @@ export function useBestiaryRequest() {
 
   
   const requestMonstersByLocation = useCallback(async (location: string): Promise<string[]> => {
+    // Check if location starts and ends with parentheses
+    if (!(location.startsWith('(') && location.endsWith(')'))) {
+      throw new BestiaryRequestInvalidFormatError('I cannot seem to retrieve the required information from the bestiary.');
+    }
+
     const monsters = bestiary[location] || ["no monsters here"];
     addLlmMessage('user', JSON.stringify({monsters: monsters}));
 

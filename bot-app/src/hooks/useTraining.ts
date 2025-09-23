@@ -8,7 +8,8 @@ const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 export const CorrectionType = {
   JSON_EXPECTED: 'JSON_EXPECTED',
   RAM_ADDRESSES_NOT_ALLOWED: 'RAM_ADDRESSES_NOT_ALLOWED',
-  SQUARE_BRACKETS_NOT_ALLOWED: 'SQUARE_BRACKETS_NOT_ALLOWED'
+  SQUARE_BRACKETS_NOT_ALLOWED: 'SQUARE_BRACKETS_NOT_ALLOWED',
+  BESTIARY_REQUEST_INVALID_FORMAT: 'BESTIARY_REQUEST_INVALID_FORMAT'
 } as const;
 type CorrectionType = typeof CorrectionType[keyof typeof CorrectionType];
 
@@ -16,7 +17,8 @@ type CorrectionType = typeof CorrectionType[keyof typeof CorrectionType];
 const CORRECTION_MAP: Record<CorrectionType, string> = {
   [CorrectionType.JSON_EXPECTED]: 'You failed to follow instructions. Please respond in valid JSON format as specified previously.',
   [CorrectionType.RAM_ADDRESSES_NOT_ALLOWED]: 'You failed to follow instructions. Please request ram values from the RRM as specified previously',
-  [CorrectionType.SQUARE_BRACKETS_NOT_ALLOWED]: 'You failed to follow instructions. Please perform the math inside the square brackets as specified previously.'
+  [CorrectionType.SQUARE_BRACKETS_NOT_ALLOWED]: 'You failed to follow instructions. Please perform the math inside the square brackets as specified previously.',
+  [CorrectionType.BESTIARY_REQUEST_INVALID_FORMAT]: 'The bestiary request has an invalid format. If providing a location, make sure you include brackets in your location value'
 };
 
 export function useTraining() {
