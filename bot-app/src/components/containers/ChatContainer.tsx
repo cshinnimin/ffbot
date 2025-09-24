@@ -15,7 +15,7 @@ function ChatContainer() {
   const { sendLlmMessage } = useLlm();
 
   // Spinner state
-  const [spinnerOn, setFullSpinner] = React.useState(false);
+  const [fullSpinnerOn, setFullSpinner] = React.useState(false);
   const [inputSpinnerOn, setInputSpinner] = React.useState(false);
 
   // now define any behaviours we need
@@ -36,7 +36,7 @@ function ChatContainer() {
 
   const { clearLlmMessages } = useLlmMessages();
   const handleNewConversation = async () => {
-    setFullSpinner(true);
+  setFullSpinner(true);
 
     try {
       clearLlmMessages();
@@ -69,12 +69,13 @@ function ChatContainer() {
   };
 
   return (
-    <ChatLayout spinnerOn={spinnerOn}>
+    <ChatLayout spinnerOn={fullSpinnerOn}>
       <ChatWindow appMessages={appMessages} />
       <ChatInput
         onSend={handleSend}
         onRestartLlm={handleNewConversation}
         inputSpinnerOn={inputSpinnerOn}
+        fullSpinnerOn={fullSpinnerOn}
       />
     </ChatLayout>
   );

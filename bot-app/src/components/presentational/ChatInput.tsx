@@ -5,10 +5,11 @@ interface ChatInputProps {
   onSend: (message: string) => void;
   onRestartLlm: () => void;
   inputSpinnerOn?: boolean;
+  fullSpinnerOn?: boolean;
 }
 
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinnerOn }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinnerOn, fullSpinnerOn }) => {
   // Local state for this presentational component to manage the input field
   const [input, setInput] = React.useState("");
   const { llmMessagesRef } = useLlmMessages();
@@ -41,7 +42,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
         style={inputSpinnerOn || !hasMessages ? { cursor: 'default' } : undefined}
       />
       <div className="flex justify-end gap-2 items-center">
-        {!hasMessages && (
+        {!hasMessages && !inputSpinnerOn && !fullSpinnerOn && (
           <span className="start-conversation-arrow" aria-hidden="true">➡️</span>
         )}
         <button
