@@ -16,6 +16,7 @@ import type { AppMessage, AppPersona } from '../types/AppMessage';
 interface MessagesContextType {
   appMessages: AppMessage[];
   addAppMessage: (persona: AppPersona, message: string) => void;
+  clearAppMessages: () => void;
 }
 
 const AppMessageContext = createContext<MessagesContextType | undefined>(undefined);
@@ -38,8 +39,12 @@ export const AppMessagesProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const clearAppMessages = () => {
+    setAppMessages([]);
+  };
+
   return (
-    <AppMessageContext.Provider value={{ appMessages, addAppMessage }}>
+    <AppMessageContext.Provider value={{ appMessages, addAppMessage, clearAppMessages }}>
       {children}
     </AppMessageContext.Provider>
   );

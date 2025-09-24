@@ -9,7 +9,8 @@ import trainingMessage from '../../assets/symlinks/training/v0_1_3.md?raw';
 
 function ChatContainer() {
   // first import what we need from context/state
-  const { appMessages, addAppMessage } = useAppMessages();
+  const { appMessages, addAppMessage, clearAppMessages } = useAppMessages();
+  
   // second, import what we need from hooks
   const { sendLlmMessage } = useLlm();
 
@@ -34,11 +35,12 @@ function ChatContainer() {
   };
 
   const { clearLlmMessages } = useLlmMessages();
-  const handleRestartLlm = async () => {
+  const handleNewConversation = async () => {
     setFullSpinner(true);
 
     try {
       clearLlmMessages();
+      clearAppMessages();
 
       const charNames = await getCharacterNames();
       const finalTrainingMessage = trainingMessage
@@ -54,6 +56,7 @@ function ChatContainer() {
       const elapsedMs = endTime - startTime;
       const minutes = Math.floor(elapsedMs / 60000);
       const seconds = Math.floor((elapsedMs % 60000) / 1000);
+
       let timeString = '';
       if (minutes > 0 || seconds > 0) {
         timeString = ` Training took ${minutes > 0 ? minutes + ' minute' + (minutes !== 1 ? 's' : '') + ' and ' : ''}${seconds} second${seconds !== 1 ? 's' : ''}.`;
@@ -70,7 +73,7 @@ function ChatContainer() {
       <ChatWindow appMessages={appMessages} />
       <ChatInput
         onSend={handleSend}
-        onRestartLlm={handleRestartLlm}
+        onRestartLlm={handleNewConversation}
         inputSpinnerOn={inputSpinnerOn}
       />
     </ChatLayout>

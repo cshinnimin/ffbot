@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLlmMessages } from '../../references/LlmMessagesRef';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -6,9 +7,13 @@ interface ChatInputProps {
   inputSpinnerOn?: boolean;
 }
 
+
 const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinnerOn }) => {
   // Local state for this presentational component to manage the input field
   const [input, setInput] = React.useState("");
+  const { llmMessagesRef } = useLlmMessages();
+
+  const hasMessages = llmMessagesRef.current.length > 0;
 
   const handleSend = () => {
     if (input.trim() !== "") {
@@ -31,9 +36,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
             handleSend();
           }
         }}
-        disabled={inputSpinnerOn}
-        aria-disabled={inputSpinnerOn}
-        style={inputSpinnerOn ? { cursor: 'default' } : undefined}
+        disabled={inputSpinnerOn || !hasMessages}
+        aria-disabled={inputSpinnerOn || !hasMessages}
+        style={inputSpinnerOn || !hasMessages ? { cursor: 'default' } : undefined}
       />
       <div className="flex justify-end gap-2">
         <button
@@ -44,13 +49,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
           disabled={inputSpinnerOn}
           aria-disabled={inputSpinnerOn}
         >
-          Restart LLM
+          New Conversation
         </button>
         <button
           className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800 flex items-center justify-center min-w-[80px]"
           onClick={handleSend}
-          disabled={inputSpinnerOn}
-          aria-disabled={inputSpinnerOn}
+          disabled={inputSpinnerOn || !hasMessages}
+          aria-disabled={inputSpinnerOn || !hasMessages}
         >
           {inputSpinnerOn ? (
             <span className="loading loading-spinner loading-sm"></span>
