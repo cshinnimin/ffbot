@@ -42,7 +42,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
       />
       <div className="flex justify-end gap-2 items-center">
         {!hasMessages && (
-          <span className="glow-arrow" aria-hidden="true">➡️</span>
+          <span className="start-conversation-arrow" aria-hidden="true">➡️</span>
         )}
         <button
           className={`btn rounded-lg bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300
