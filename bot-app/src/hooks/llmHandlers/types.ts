@@ -2,7 +2,7 @@ export type HandlerDeps = {
   requestRamRead: (arg: any) => Promise<string>;
   requestRamWrite: (lua: any, answer: any) => Promise<any>;
   requestMonstersByLocation: (location: any) => Promise<string | string[]>;
-  requestLocationsByMonster: (monster: any) => Promise<string | string[]>;
+  requestLocationsByMonster: (monsters: string[]) => Promise<Record<string, string[]>>;
 };
 
 // the LLM handler must return an `answerString` if the LLM included an `answer` 

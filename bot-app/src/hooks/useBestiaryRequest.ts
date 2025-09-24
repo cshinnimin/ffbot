@@ -20,10 +20,16 @@ export function useBestiaryRequest() {
   const { bestiary, reverseBestiary } = useMemo(() => {
     const bestiary: BestiaryMap = bestiaryData as BestiaryMap;
     const reverseBestiary: ReverseBestiaryMap = {};
+
+    // Helper to normalize monster names for the reverse bestiary keys:
+    // lowercase, remove spaces and symbols
+    const normalize = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
     for (const [loc, monsters] of Object.entries(bestiary)) {
       for (const monster of monsters) {
-        if (!reverseBestiary[monster]) reverseBestiary[monster] = [];
-        reverseBestiary[monster].push(loc);
+        const key = normalize(monster);
+        if (!reverseBestiary[key]) reverseBestiary[key] = [];
+        reverseBestiary[key].push(loc);
       }
     }
     return { bestiary, reverseBestiary };
@@ -55,9 +61,29 @@ export function useBestiaryRequest() {
     return parseResponse(response);
   }, [addLlmMessage]);
 
-  const requestLocationsByMonster = useCallback(async (monster: string): Promise<string[]> => {
-    const locations = reverseBestiary[monster] || ["no locations found"];
-    addLlmMessage('user', JSON.stringify({locations: locations}));
+  /**
+   * Request locations by monster names.
+   *
+   */
+  const requestLocationsByMonster = useCallback(async (monsters: string[]): Promise<Record<string, string[]>> => {
+
+    // Strip trailing 's' from entries unless 'cerebus' or 'chaos', since no other
+    // monsters in the game end with S
+    const normalizedMonsters = monsters.map(monster => {
+      if ((monster.toLowerCase() !== 'cerebus' && monster.toLowerCase() !== 'chaos') && monster.endsWith('s')) {
+        return monster.slice(0, -1);
+      }
+      return monster;
+    });
+
+    const locationsObj: Record<string, string[]> = {};
+    for (let i = 0; i < monsters.length; i++) {
+      const monster = normalizedMonsters[i];
+      const locations = reverseBestiary[monster] || ["monster not found"];
+      locationsObj[monster] = locations;
+    }
+
+    addLlmMessage('user', JSON.stringify({ locations: locationsObj }));
 
     if (DEBUG_MODE) {
       console.log('%cuseBestiaryRequest - requestLocationsByMonster - llmMessagesRef.current:', 'color: #888888; font-size: 14px; font-weight: bold;');
@@ -73,7 +99,7 @@ export function useBestiaryRequest() {
     }
 
     return parseResponse(response);
-  }, [addLlmMessage]);
+  }, [addLlmMessage, reverseBestiary]);
 
   return {
     requestMonstersByLocation,
