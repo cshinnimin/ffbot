@@ -40,7 +40,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
         aria-disabled={inputSpinnerOn || !hasMessages}
         style={inputSpinnerOn || !hasMessages ? { cursor: 'default' } : undefined}
       />
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 items-center">
+        {!hasMessages && (
+          <span className="glow-arrow" aria-hidden="true">➡️</span>
+        )}
         <button
           className={`btn rounded-lg bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300
             ${inputSpinnerOn ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -66,6 +69,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
       </div>
     </div>
   );
-};
+}
 
 export default ChatInput;

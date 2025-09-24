@@ -1,0 +1,11 @@
+.glow-arrow {
+	animation: glow-move 1s infinite alternate;
+	filter: drop-shadow(0 0 8px #00f) drop-shadow(0 0 16px #00f);
+	font-size: 1.5rem;
+	vertical-align: middle;
+	margin-right: 0.5rem;
+}
+@keyframes glow-move {
+	0% { transform: translateX(0); }
+	100% { transform: translateX(10px) scale(1.1); }
+}
