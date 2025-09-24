@@ -31,12 +31,12 @@
         { "address": "0x006034", "type": "lookup", "description": "Wind orb shining?", "lookup": "yes_no"},
         { "address": "0x006035", "type": "lookup", "description": "Earth orb shining?", "lookup": "yes_no"},
 
-        { "address": "0x006136", "type": "number", "description": "Number of tents", "weight": "1" },
-        { "address": "0x006137", "type": "number", "description": "Number of cabins", "weight": "1" },
-        { "address": "0x006138", "type": "number", "description": "Number of houses", "weight": "1" },
-        { "address": "0x006139", "type": "number", "description": "Number of heals", "weight": "1" },
-        { "address": "0x00613A", "type": "number", "description": "Number of pures", "weight": "1" },
-        { "address": "0x00613B", "type": "number", "description": "Number of softs", "weight": "1" },
+        { "address": "0x006036", "type": "number", "description": "Number of tents", "weight": "1" },
+        { "address": "0x006037", "type": "number", "description": "Number of cabins", "weight": "1" },
+        { "address": "0x006038", "type": "number", "description": "Number of houses", "weight": "1" },
+        { "address": "0x006039", "type": "number", "description": "Number of heals", "weight": "1" },
+        { "address": "0x00603A", "type": "number", "description": "Number of pures", "weight": "1" },
+        { "address": "0x00603B", "type": "number", "description": "Number of softs", "weight": "1" },
 
         { "address": "0x006100", "type": "lookup", "description": "Character 1 class", "lookup": "class" },
         { "address": "0x006101", "type": "", "description": "" },
