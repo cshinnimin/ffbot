@@ -130,6 +130,7 @@ export async function getRamValuesMap(addresses: string[]) {
       }
     });
   } catch (error) {
+    debugger;
     throw new RamContentsError('Game memory not in expected format.');
   }
 

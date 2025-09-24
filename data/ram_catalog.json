@@ -8,6 +8,36 @@
         { "address": "0x000050", "type": "lookup", "description": "Shopping flag", "lookup": "shop_flag" },
         { "address": "0x0000F8", "type": "lookup", "description": "Overworld flag", "lookup": "overworld_flag"},
 
+        { "address": "0x006021", "type": "lookup", "description": "Have lute?", "lookup": "yes_no"},
+        { "address": "0x006022", "type": "lookup", "description": "Have crown?", "lookup": "yes_no"},
+        { "address": "0x006023", "type": "lookup", "description": "Have crystal?", "lookup": "yes_no"},
+        { "address": "0x006024", "type": "lookup", "description": "Have herb?", "lookup": "yes_no"},
+        { "address": "0x006025", "type": "lookup", "description": "Have mystic key?", "lookup": "yes_no"},
+        { "address": "0x006026", "type": "lookup", "description": "Have TNT?", "lookup": "yes_no"},
+        { "address": "0x006027", "type": "lookup", "description": "Have adamant?", "lookup": "yes_no"},
+        { "address": "0x006028", "type": "lookup", "description": "Have slab?", "lookup": "yes_no"},
+        { "address": "0x006029", "type": "lookup", "description": "Have ruby?", "lookup": "yes_no"},
+        { "address": "0x00602A", "type": "lookup", "description": "Have rod?", "lookup": "yes_no"},
+        { "address": "0x00602B", "type": "lookup", "description": "Have floater?", "lookup": "yes_no"},
+        { "address": "0x00602C", "type": "lookup", "description": "Have chime?", "lookup": "yes_no"},
+        { "address": "0x00602D", "type": "lookup", "description": "Have tail?", "lookup": "yes_no"},
+        { "address": "0x00602E", "type": "lookup", "description": "Have cube?", "lookup": "yes_no"},
+        { "address": "0x00602F", "type": "lookup", "description": "Have bottle?", "lookup": "yes_no"},
+        { "address": "0x006030", "type": "lookup", "description": "Have oxyale?", "lookup": "yes_no"},
+        { "address": "0x006031", "type": "lookup", "description": "Have canoe?", "lookup": "yes_no"},
+
+        { "address": "0x006032", "type": "lookup", "description": "Fire orb shining?", "lookup": "yes_no"},
+        { "address": "0x006033", "type": "lookup", "description": "Water orb shining?", "lookup": "yes_no"},
+        { "address": "0x006034", "type": "lookup", "description": "Wind orb shining?", "lookup": "yes_no"},
+        { "address": "0x006035", "type": "lookup", "description": "Earth orb shining?", "lookup": "yes_no"},
+
+        { "address": "0x006136", "type": "number", "description": "Number of tents", "weight": "1" },
+        { "address": "0x006137", "type": "number", "description": "Number of cabins", "weight": "1" },
+        { "address": "0x006138", "type": "number", "description": "Number of houses", "weight": "1" },
+        { "address": "0x006139", "type": "number", "description": "Number of heals", "weight": "1" },
+        { "address": "0x00613A", "type": "number", "description": "Number of pures", "weight": "1" },
+        { "address": "0x00613B", "type": "number", "description": "Number of softs", "weight": "1" },
+
         { "address": "0x006100", "type": "lookup", "description": "Character 1 class", "lookup": "class" },
         { "address": "0x006101", "type": "", "description": "" },
         { "address": "0x006102", "type": "lookup", "description": "Character 1 name, letter 1", "lookup": "char" },
@@ -346,6 +376,9 @@
         { "address": "0x006C86", "type": "number", "description": "Monster 9 maximum HP, high byte", "weight": "256" }
     ],
     "lookups": [
+        { "key": "yes_no", "default": "unknown", "map": {
+            "0x00": "no", "0x01": "yes"
+        }},
         { "key": "battle_flag", "default": "not in battle", "map": {
             "0x41": "in battle"
         }},
@@ -496,7 +529,12 @@
             "0x05": "Gaia, 1F",
             "0x10": "Cardia Islands, B1",
             "0x06": "Onrac, 1F",
-            "0x12": "Waterfall, 1F"
+            "0x12": "Waterfall, 1F",
+            "0x2C": "Sea Shrine, 1F",                
+            "0x2D": "Sea Shrine, 2F",
+            "0x2E": "Sea Shrine, 3F",
+            "0x2B": "Sea Shrine, B1",
+            "0x2A": "Sea Shrine, B2"
         }}
     ]
 }
