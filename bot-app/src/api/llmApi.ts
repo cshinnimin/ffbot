@@ -30,10 +30,11 @@ export async function getLlmResponse(
         model: model,
         messages: conversation,
         stream,
-        options: {
-          temperature: temperature,
-        },
-        keep_alive: keep_alive
+        // options: {
+        //   temperature: temperature,
+        // },
+        // keep_alive: keep_alive
+        temperature: temperature
       }),
     });
 
@@ -66,7 +67,10 @@ export async function getLlmResponse(
 }
 
 export function parseResponse(response: any) {
-  if (response.choices) {
+  if (response.error?.message) {
+    // error format for openai.com
+    return '{ "answer": "' + response.error.message + '" }';
+  } else if (response.choices) {
     // response format for openrouter.ai
     return response.choices[0].message.content;
   } else if (response.message?.content) {

@@ -25,8 +25,21 @@ touch $RAMDISK_DIR/ram_contents.json
 cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 cp data/bestiary.json $RAMDISK_DIR/bestiary.json
 
-# fire python write_ram endpoint and load emulator
+# load python write_ram endpoint in background process
 python scripts/python/write_ram.py &
 PYTHON_PID=$!
+
+# load npm server in background process
+npm run dev --silent --prefix bot-app &
+NPM_PID=$!
+
+# wait a second for npm to load then open browser and load bot-app
+sleep 1
+xdg-open "http://localhost:5173" &
+
+# load emulator
 eval "${1:-fceux-gui --loadlua \"$FFBOT_DIR/scripts/lua/main_daemon.lua\" $ROM_FILE}"
+
+# clean up background processes
 kill $PYTHON_PID
+kill $NPM_PID
