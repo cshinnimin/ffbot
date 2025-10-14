@@ -67,6 +67,10 @@ export async function getLlmResponse(
 }
 
 export function parseResponse(response: any) {
+  if (!response) {
+    return '{ "answer": "The LLM did not return a response." }';
+  }
+
   if (response.error?.message) {
     // error format for openai.com and openrouter.ai
     return '{ "answer": "' + response.error.message + '" }';
