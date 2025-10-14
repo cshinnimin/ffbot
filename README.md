@@ -67,7 +67,7 @@ pyenv versions
 
 * Install poppler-utils (used for PDF conversions if PDFs are desired as document sources):
 ```
-apt-get install -y poppler-utils
+sudo dnf install -y poppler-utils
 ```
 
 * Install sqlite (used by ChromaDB, make sure this is done **before** installing the 3.12.11 python version via pyenv or else chromadb will not be importable in python):
