@@ -27,25 +27,11 @@ luarocks install lunajson
 export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
 ```
 
-### Install Python and Flask
+### Install Python, Flask, Langchain, ChromaDB and Dependencies
 
 The React bot app needs the ability to write a file to the RAMdisk in order to write contents back to NES memory. This is accomplished by exposing a simple API endpoint using Python / Flask.
 
-* Install Python and 'pip', Python's package manager:
-```
-sudo dnf update
-sudo dnf install python3 python3-pip
-```
-
-* Install Flask and Flask-CORS (needed for React app to make cross origin request to python API from different port):
-```
-pip install Flask
-pip install Flask-CORS
-```
-
-### Install Langchain, ChromaDB and Dependencies
-
-In order to faciliate loading of data for the LLM, splitting (chunking) the data and embedding the data in a vector store we need to install Langchain and ChromaDB. This was found to be stable on python version 3.12.11. 
+In order to faciliate loading of data for the LLM, splitting (chunking) the data and embedding the data in a vector store we need to install Langchain and ChromaDB. This was found to be stable on python version 3.12.11, so we will use a python environment manager to install this version specifically. 
 
 * Install **pyenv** to manage Python versions (as per [pyenv README](https://github.com/pyenv/pyenv)):
 ```
@@ -83,6 +69,18 @@ pyenv install 3.12.11
 * Set Version 3.12.11 as the python version:
 ```
 pyenv global 3.12.11
+```
+
+* Install Python and 'pip', Python's package manager:
+```
+sudo dnf update
+sudo dnf install python3 python3-pip
+```
+
+* Install Flask and Flask-CORS (needed for React app to make cross origin request to python API from different port):
+```
+pip install Flask
+pip install Flask-CORS
 ```
 
 NOTE: If you wish to continue using the global version of Python you already have installed on your system, you can create a virtual environment for FFBot's python requirements instead. See the pyenv documentation for further instructions.
