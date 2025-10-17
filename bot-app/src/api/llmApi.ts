@@ -9,32 +9,15 @@ export async function getLlmResponse(
   onStreamChunk?: (chunk: string) => void
 ): Promise<any> {
   try {
-    const url = import.meta.env.VITE_LLM_URL || 'http://localhost:11434/api/chat';
-    const model = import.meta.env.VITE_LLM_MODEL || 'llama3.2:3b';
-    const temperature = Number(import.meta.env.VITE_LLM_TEMPERATURE || '0.4');
-    const keep_alive = import.meta.env.VITE_LLM_KEEP_ALIVE || '30m';
-    const api_key = import.meta.env.VITE_LLM_API_KEY || ''; 
-    const delay = Number(import.meta.env.VITE_LLM_THROTTLE_DELAY || '0'); 
-
-    if (delay) {
-      await sleep(delay);
-    }
-
-    const response = await fetch(url, {
+    const flaskUrl = '/llm/get_response';
+    const response = await fetch(flaskUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        "Authorization": `Bearer ${api_key}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: model,
         messages: conversation,
-        stream,
-        // options: {
-        //   temperature: temperature,
-        // },
-        // keep_alive: keep_alive
-        temperature: temperature
+        stream: stream
       }),
     });
 
@@ -85,4 +68,4 @@ export function parseResponse(response: any) {
   return {};
 }
 
-const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+// no-op

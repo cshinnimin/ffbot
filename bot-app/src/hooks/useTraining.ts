@@ -24,11 +24,23 @@ const CORRECTION_MAP: Record<CorrectionType, string> = {
 export function useTraining() {
     const { llmMessagesRef, addLlmMessage } = useLlmMessages();
 
+    const MAX_ATTEMPTS = Number((import.meta as any).env?.VITE_TRAINING_MAX_ATTEMPTS || '5');
+    let trainingAttempts = 0;
+
     /**
      * A function used to issue a corrective training message to the LLM
      * when it has made a mistake, e.g., not responding in JSON format
      */
     const issueCorrection = useCallback(async (correction: CorrectionType) => {
+        if (trainingAttempts >= MAX_ATTEMPTS) {
+          if (DEBUG_MODE) {
+            console.log('%cuseTraining - max attempts reached:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
+          }
+
+          return '{ "answer": "The maximum number of training attempts has been reached." }';
+        }
+        
+        trainingAttempts++;
         addLlmMessage('user', CORRECTION_MAP[correction]);
 
         if (DEBUG_MODE) {
