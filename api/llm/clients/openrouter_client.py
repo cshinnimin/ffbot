@@ -5,21 +5,21 @@ from .base import LlmClient
 
 
 class OpenRouterClient(LlmClient):
-    def chat(self, messages: List[Dict[str, Any]], stream: bool = False, temperature: Optional[float] = None) -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
         url = self.config.get("LLM_URL") or "https://openrouter.ai/api/v1/chat/completions"
         model = self.config.get("LLM_MODEL")
         api_key = self.config.get("LLM_API_KEY")
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {api_key}"
         }
 
         payload: Dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE"),
-            # For OpenRouter and Ollama we can include options/keep_alive analogs if supported
+            "stream": False,
+            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
         }
 
         print(f"[OpenRouterClient] POST {url} model={model} msgs={len(messages)}")

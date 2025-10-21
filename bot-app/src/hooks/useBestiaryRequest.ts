@@ -51,7 +51,7 @@ export function useBestiaryRequest() {
       console.log(llmMessagesRef.current);
     }
     
-    const response = await getLlmResponse(llmMessagesRef.current, false);
+  const response = await getLlmResponse(llmMessagesRef.current);
     addLlmMessage('assistant', parseResponse(response));
     
     if (DEBUG_MODE) {
@@ -91,7 +91,7 @@ export function useBestiaryRequest() {
       console.log(llmMessagesRef.current);
     }
 
-    const response = await getLlmResponse(llmMessagesRef.current, false);
+  const response = await getLlmResponse(llmMessagesRef.current);
     addLlmMessage('assistant', parseResponse(response));
 
     if (DEBUG_MODE) {

@@ -38,7 +38,6 @@ def create_app() -> Flask:
             return ("", 200)
         payload = request.get_json(silent=True) or {}
         conversation = payload.get("messages", []) or payload.get("conversation", [])
-        stream = bool(payload.get("stream", False))
         temperature = payload.get("temperature")
 
         throttle_delay_ms = int(config.get("LLM_THROTTLE_DELAY", 0))
@@ -49,7 +48,6 @@ def create_app() -> Flask:
         try:
             response = client.chat(
                 messages=conversation,
-                stream=stream,
                 temperature=temperature,
             )
             print(f"[LLM API] Provider '{provider}' returned response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}")

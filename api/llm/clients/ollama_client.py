@@ -5,25 +5,24 @@ from .base import LlmClient
 
 
 class OllamaClient(LlmClient):
-    def chat(self, messages: List[Dict[str, Any]], stream: bool = False, temperature: Optional[float] = None) -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
         url = self.config.get("LLM_URL") or "http://localhost:11434/api/chat"
         model = self.config.get("LLM_MODEL")
         keep_alive = self.config.get("LLM_KEEP_ALIVE", "30m")
 
         headers = {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
         }
 
         payload: Dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "stream": bool(stream),
-            # The React code had commented options/keep_alive - we include for Ollama
+            "stream": False,
             "options": {
                 "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE"),
             },
             "keep_alive": keep_alive,
-            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE"),
+            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
         }
 
         print(f"[OllamaClient] POST {url} model={model} msgs={len(messages)}")
