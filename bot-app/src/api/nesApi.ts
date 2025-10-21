@@ -137,8 +137,9 @@ export async function getRamValuesMap(addresses: string[]) {
 }
 
 export async function sendLuaScript(luaScript: string) {
-  // Read port from VITE_FLASK_PORT in .env, default to 5000
-  const port = import.meta.env.VITE_FLASK_PORT || '5000';
+  // Read port injected by Vite. Prefer NES_API_PORT from root .env via vite.config.ts define,
+  // then default to 5000.
+  const port = import.meta.env.NES_API_PORT || '5000';
 
   const url = `http://localhost:${port}/write_ram`;
   const response = await fetch(url, {

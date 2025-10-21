@@ -62,6 +62,7 @@ Copy `.env-sample` to `.env` and update any configuration variables.
 * `VITE_TRAINING_MAX ATTEMPTS`: The bot app attempts to re-issue training to the LLM if it responds in a format it is not expecting. Set the maximum number of attempts before giving up.
 * `NES_API_PORT`: The port the Python service used by the React front end to write data to the RAMDisk should be run on. Deafult 5000.
 * `LLM_API_PORT`: The port the Python service used by the React front end to interface with the LLM should be run on. Default 5001.
+* `VITE_PORT`: The port the front end React Vite application should be run on. Default 5173.
 
 ### Install a Local LLM, if Desired
 

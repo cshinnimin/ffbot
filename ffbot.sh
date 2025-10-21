@@ -24,12 +24,16 @@ touch $RAMDISK_DIR/ram_contents.json
 cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 cp data/bestiary.json $RAMDISK_DIR/bestiary.json
 
-# load python write_ram endpoint in background process
-python scripts/python/write_ram.py &
+# load python NES write_ram Flask app in background process
+python -m api.nes.write_ram &
 PYTHON_PID=$!
 
-# load python Flask LLM API in background process (on 5001)
-LLM_API_PORT=5001 python -m api.llm.app &
+# load python Flask LLM API in background process
+# `LLM_API_PORT` is read from the root `.env` which is sourced at the top of this script
+# If it's not set, default to 5001.
+LLM_API_PORT=${LLM_API_PORT:-5001}
+export LLM_API_PORT
+python -m api.llm.app &
 LLM_API_PID=$!
 
 # load npm server in background process
@@ -38,7 +42,7 @@ NPM_PID=$!
 
 # wait a second for npm to load then open browser and load bot-app
 sleep 1
-xdg-open "http://localhost:5173" &
+xdg-open "http://localhost:$VITE_PORT" &
 
 # load emulator
 eval "${1:-fceux-gui --loadlua \"$FFBOT_DIR/scripts/lua/main_daemon.lua\" $ROM_FILE}"
