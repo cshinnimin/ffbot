@@ -26,6 +26,14 @@ class OpenRouterClient(LlmClient):
         res = requests.post(url, headers=headers, json=payload, timeout=60)
         # Return shape similar to OpenAI (choices)
         res.raise_for_status()
-        return res.json()
+        data = res.json()
+        # openrouter uses OpenAI-like shapes; return error message or first choice
+        if isinstance(data, dict) and data.get('error') and data['error'].get('message'):
+            return data['error']['message']
+
+        try:
+            return data['choices'][0]['message']['content']
+        except Exception:
+            return str(data)
 
 

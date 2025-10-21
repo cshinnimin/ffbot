@@ -25,22 +25,3 @@ export async function getLlmResponse(
     return null;
   }
 }
-
-export function parseResponse(response: any) {
-  if (!response) {
-    return '{ "answer": "The LLM did not return a response." }';
-  }
-
-  if (response.error?.message) {
-    // error format for openai.com and openrouter.ai
-    return '{ "answer": "' + response.error.message + '" }';
-  } else if (response.choices) {
-    // response format for openai.com and openrouter.ai
-    return response.choices[0].message.content;
-  } else if (response.message?.content) {
-    // response format for Ollama local LLMs
-    return response.message.content;
-  }
-
-  return {};
-}

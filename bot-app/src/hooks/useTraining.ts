@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useLlmMessages } from '../references/LlmMessagesRef';
-import { getLlmResponse, parseResponse } from '../api/llmApi';
+import { getLlmResponse } from '../api/llmApi';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -49,13 +49,13 @@ export function useTraining() {
 		    }
 
         const response = await getLlmResponse(llmMessagesRef.current);
-        addLlmMessage('assistant', parseResponse(response));
+        addLlmMessage('assistant', response);
         if (DEBUG_MODE) {
-        console.log('%cuseTraining - useTraining - response:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
-        console.log(parseResponse(response));
-      }
+          console.log('%cuseTraining - useTraining - response:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
+          console.log(response);
+        }
 
-      return parseResponse(response);
+        return response;
     }, []);
 
     return { issueCorrection };

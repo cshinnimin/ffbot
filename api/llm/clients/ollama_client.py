@@ -29,7 +29,13 @@ class OllamaClient(LlmClient):
         res = requests.post(url, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
         data = res.json()
-        # Ensure Ollama shape is { message: { content } } to satisfy parseResponse
-        return data
+
+        try:
+            if isinstance(data, dict) and data.get('error') and data['error'].get('message'):
+                return '{"answer": "' + data['error']['message'] + '"}'
+
+            return data['message']['content']
+        except Exception:
+            return str(data)
 
 

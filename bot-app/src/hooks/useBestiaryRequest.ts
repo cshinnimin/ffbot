@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useLlmMessages } from '../references/LlmMessagesRef';
 // @ts-ignore, ignore symlink error, will be resolved at runtime
 import bestiaryData from '../../public/symlinks/ramdisk/bestiary.json';
-import { getLlmResponse, parseResponse } from "../api/llmApi";
+import { getLlmResponse } from "../api/llmApi";
 import { BestiaryRequestInvalidFormatError } from "../types/Error";
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
@@ -52,14 +52,15 @@ export function useBestiaryRequest() {
     }
     
   const response = await getLlmResponse(llmMessagesRef.current);
-    addLlmMessage('assistant', parseResponse(response));
-    
-    if (DEBUG_MODE) {
-        console.log('%cuseBestiary - requestMonstersByLocation - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
-        console.log(parseResponse(response));
-    }
-    
-    return parseResponse(response);
+  // Response is the assistant's answer string
+  addLlmMessage('assistant', response);
+
+  if (DEBUG_MODE) {
+    console.log('%cuseBestiary - requestMonstersByLocation - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
+    console.log(response);
+  }
+
+  return response;
   }, [addLlmMessage]);
 
   /**
@@ -92,14 +93,15 @@ export function useBestiaryRequest() {
     }
 
   const response = await getLlmResponse(llmMessagesRef.current);
-    addLlmMessage('assistant', parseResponse(response));
+  // Response is the assistant's answer string
+  addLlmMessage('assistant', response);
 
-    if (DEBUG_MODE) {
-        console.log('%cuseBestiary - requestLocationsByMonster - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
-        console.log(parseResponse(response));
-    }
+  if (DEBUG_MODE) {
+    console.log('%cuseBestiary - requestLocationsByMonster - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
+    console.log(response);
+  }
 
-    return parseResponse(response);
+  return response;
   }, [addLlmMessage, reverseBestiary]);
 
   return {

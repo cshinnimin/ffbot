@@ -7,8 +7,9 @@ class LlmClient(ABC):
         self.config = config
 
     @abstractmethod
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
-        """Return a response in the unified shape expected by the React app's parseResponse."""
+    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
+        """ Return the assistant's answer as a plain string """
+        
         raise NotImplementedError
 
 
