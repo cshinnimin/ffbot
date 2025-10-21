@@ -48,7 +48,7 @@ export function useTraining() {
           console.log(llmMessagesRef.current);
 		    }
 
-  const response = await getLlmResponse(llmMessagesRef.current);
+        const response = await getLlmResponse(llmMessagesRef.current);
         addLlmMessage('assistant', parseResponse(response));
         if (DEBUG_MODE) {
         console.log('%cuseTraining - useTraining - response:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
