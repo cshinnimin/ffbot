@@ -14,7 +14,7 @@ DEFAULTS = {
     "LLM_KEEP_ALIVE": "30m",
     "LLM_API_KEY": "",
     "LLM_THROTTLE_DELAY": 0,
-    "LLM_PROVIDER": "ollama",  # one of: openai, openrouter, ollama
+    "LLM_PROVIDER": "ollama"
 }
 
 def _load_env_overrides() -> Dict[str, Any]:
