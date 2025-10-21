@@ -3,13 +3,12 @@ from pathlib import Path
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-
 ROOT = Path(__file__).resolve().parents[2]
 # Load root .env if present
 load_dotenv(ROOT / ".env")
 DEFAULTS = {
     "NES_API_PORT": 5000,
-    "RAMDISK_DIR": "/tmp/ramdisk/",
+    "RAMDISK_DIR": "/mnt/ramdisk-ffbot/"
 }
 
 def _load_env_overrides() -> Dict[str, Any]:
@@ -25,7 +24,7 @@ def get_config() -> Dict[str, Any]:
     config: Dict[str, Any] = DEFAULTS.copy()
     config.update(_load_env_overrides())
 
-    # Coerce types
+    # If environment variable is not an integer, use default
     try:
         config["NES_API_PORT"] = int(config.get("NES_API_PORT", DEFAULTS["NES_API_PORT"]))
     except Exception:

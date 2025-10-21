@@ -1,15 +1,16 @@
-##### Final Fantasy Bot Configuration #####
-
-export RAMDISK_DIR=/mnt/ramdisk-ffbot/
-export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
-export ROM_FILE=../../roms/FF1.nes
-
-RAMDISK_SIZE=64M
-
-###########################################
-
 ##### Final Fantasy Bot Loading Script ####
-##### (do not modify below) ###############
+
+# Load environment variables from .env file
+if [ -f "$(dirname "${BASH_SOURCE[0]}")/.env" ]; then
+    set -a  # automatically export all variables
+    source "$(dirname "${BASH_SOURCE[0]}")/.env"
+    set +a  # stop automatically exporting
+else
+    echo "Warning: .env file not found. Using default values."
+    export RAMDISK_DIR=/mnt/ramdisk-ffbot/
+    export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
+    export ROM_FILE=../../roms/FF1.nes
+fi
 
 export FFBOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
