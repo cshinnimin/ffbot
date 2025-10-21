@@ -1,11 +1,12 @@
-import os
 from flask import Flask, request
 from flask_cors import CORS
+from config import get_config
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes and allow all origins
 
-FILENAME = os.environ['RAMDISK_DIR'] + "execute.lua"
+config = get_config()
+FILENAME = config['RAMDISK_DIR'] + "execute.lua"
 
 @app.route('/write_ram', methods=['POST'])
 def write_ram():
@@ -24,4 +25,4 @@ def write_ram():
         return f"Error writing file: {e}", 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=config['NES_API_PORT'])
