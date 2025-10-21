@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useLlmMessages } from '../references/LlmMessagesRef';
+// @ts-ignore, ignore symlink error, will be resolved at runtime
 import bestiaryData from '../../public/symlinks/ramdisk/bestiary.json';
 import { getLlmResponse, parseResponse } from "../api/llmApi";
 import { BestiaryRequestInvalidFormatError } from "../types/Error";
