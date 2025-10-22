@@ -120,6 +120,10 @@ export async function getRamValuesMap(addresses: string[]) {
         } else {
           values[address] = rcLookupEntry.lookup.default;
         }
+
+        if (values[address] == "Imp") {
+          values[address] = confirmImp(address, ram_contents);
+        }
       } else if ('weight' in rcLookupEntry) {
         // is a RamCatNumberEntry
         const rawVal = parseInt(ram_contents[address], 16);
@@ -154,4 +158,32 @@ export async function sendLuaScript(luaScript: string) {
   }
 
   return response.ok;
+}
+
+/**
+ * Private function used to confirm whether there is really an Imp in a given enemy slot.
+ * 
+ * Since Imps enemy code is 00, and ALL enemy data values are set to 00 in slots with no
+ * enemy, additonal logic is required to validate that an Imp really exists in the slot.
+ */
+function confirmImp(address: string, ram_contents: Record<string, string>): string {
+  // map whose key is the memory address of an enemy type, and whose value is the
+  // memory address of the corresponding enemy "exists?" flag:
+  const EXISTS_BY_TYPE_ADDRESS_MAP: Record<string, string> = {
+    "0x006BE4": "0x006BDF",
+    "0x006BF8": "0x006BF3",
+    "0x006C0C": "0x006C07",
+    "0x006C20": "0x006C1B",
+    "0x006C34": "0x006C2F",
+    "0x006C48": "0x006C43",
+    "0x006C5C": "0x006C57",
+    "0x006C70": "0x006C6B",
+    "0x006C84": "0x006C7F"
+  };
+
+  if (ram_contents[EXISTS_BY_TYPE_ADDRESS_MAP[address]] === "0x00") {
+    return "";
+  }
+
+  return "Imp";
 }
