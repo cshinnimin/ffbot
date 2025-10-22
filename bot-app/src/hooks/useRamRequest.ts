@@ -1,4 +1,4 @@
-import { getLlmResponse, parseResponse } from '../api/llmApi';
+import { getLlmResponse } from '../api/llmApi';
 import { getRamValuesMap, sendLuaScript } from '../api/nesApi';
 import { useLlmMessages } from '../references/LlmMessagesRef';
 import { useCallback } from 'react';
@@ -25,14 +25,14 @@ export function useRamRequest() {
 			console.log(llmMessagesRef.current);
 		}
 
-		const response = await getLlmResponse(llmMessagesRef.current, false);
-		addLlmMessage('assistant', parseResponse(response));
+		const response = await getLlmResponse(llmMessagesRef.current);
+		addLlmMessage('assistant', response);
 		if (DEBUG_MODE) {
 			console.log('%cuseRamRequest - requestRamRead - response:', 'color: #ec9ba4; font-size: 14px; font-weight: bold;');
-			console.log(parseResponse(response));
+			console.log(response);
 		}
 
-		return parseResponse(response);
+		return response;
 	}, [llmMessagesRef, addLlmMessage]);
 
 	const requestRamWrite = useCallback(async (lua_script: string, message: string): Promise<string> => {

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useLlmMessages } from '../references/LlmMessagesRef';
-import { getLlmResponse, parseResponse } from '../api/llmApi';
+import { getLlmResponse } from '../api/llmApi';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -24,11 +24,23 @@ const CORRECTION_MAP: Record<CorrectionType, string> = {
 export function useTraining() {
     const { llmMessagesRef, addLlmMessage } = useLlmMessages();
 
+    const MAX_ATTEMPTS = Number((import.meta as any).env?.VITE_TRAINING_MAX_ATTEMPTS || '5');
+    let trainingAttempts = 0;
+
     /**
      * A function used to issue a corrective training message to the LLM
      * when it has made a mistake, e.g., not responding in JSON format
      */
     const issueCorrection = useCallback(async (correction: CorrectionType) => {
+        if (trainingAttempts >= MAX_ATTEMPTS) {
+          if (DEBUG_MODE) {
+            console.log('%cuseTraining - max attempts reached:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
+          }
+
+          return '{ "answer": "The maximum number of training attempts has been reached." }';
+        }
+        
+        trainingAttempts++;
         addLlmMessage('user', CORRECTION_MAP[correction]);
 
         if (DEBUG_MODE) {
@@ -36,14 +48,14 @@ export function useTraining() {
           console.log(llmMessagesRef.current);
 		    }
 
-  const response = await getLlmResponse(llmMessagesRef.current, false);
-        addLlmMessage('assistant', parseResponse(response));
+        const response = await getLlmResponse(llmMessagesRef.current);
+        addLlmMessage('assistant', response);
         if (DEBUG_MODE) {
-        console.log('%cuseTraining - useTraining - response:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
-        console.log(parseResponse(response));
-      }
+          console.log('%cuseTraining - useTraining - response:', 'color: #8e86ae; font-size: 14px; font-weight: bold;');
+          console.log(response);
+        }
 
-      return parseResponse(response);
+        return response;
     }, []);
 
     return { issueCorrection };

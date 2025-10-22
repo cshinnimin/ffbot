@@ -14,7 +14,7 @@ import { useCallback } from 'react';
 import { dispatchLlmHandler } from './llmHandlers/dispatchLlmHandler';
 import type { AppMessage } from '../types/AppMessage';
 import type { LlmMessage } from '../types/LlmMessage';
-import { getLlmResponse, parseResponse } from '../api/llmApi';
+import { getLlmResponse } from '../api/llmApi';
 import type { LlmResponse } from '../types/LlmResponse';
 import { useRamRequest } from './useRamRequest';
 import { useBestiaryRequest } from './useBestiaryRequest';
@@ -69,13 +69,14 @@ export function useLlm() {
   // Non-streaming LLM message
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
     addLlmMessage(llmMessage.role, llmMessage.content);
-    const response = await getLlmResponse(llmMessagesRef.current, false);
-    addLlmMessage('assistant', parseResponse(response));
+  const response = await getLlmResponse(llmMessagesRef.current);
+  // getLlmResponse now returns the assistant's answer string directly
+  addLlmMessage('assistant', response);
 
     // Use LlmResponse type to track both answerString and transientResponse
     let llmResponse: LlmResponse = {
       answerString: '',
-      transientResponse: parseResponse(response)
+      transientResponse: response
     };
 
     while (!llmResponse.answerString) {

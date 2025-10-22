@@ -1,15 +1,14 @@
-##### Final Fantasy Bot Configuration #####
-
-export RAMDISK_DIR=/mnt/ramdisk-ffbot/
-export LUA_PACKAGE_DIR=/home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
-export ROM_FILE=../../roms/FF1.nes
-
-RAMDISK_SIZE=64M
-
-###########################################
-
 ##### Final Fantasy Bot Loading Script ####
-##### (do not modify below) ###############
+
+# Load environment variables from .env file
+if [ -f "$(dirname "${BASH_SOURCE[0]}")/.env" ]; then
+    set -a  # automatically export all variables
+    source "$(dirname "${BASH_SOURCE[0]}")/.env"
+    set +a  # stop automatically exporting
+else
+    echo "Error: .env file not found. See the README.md for instructions on how to configure the project."
+    exit 1
+fi
 
 export FFBOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -25,8 +24,30 @@ touch $RAMDISK_DIR/ram_contents.json
 cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 cp data/bestiary.json $RAMDISK_DIR/bestiary.json
 
-# fire python write_ram endpoint and load emulator
-python scripts/python/write_ram.py &
+# load python NES write_ram Flask app in background process
+python -m api.nes.write_ram &
 PYTHON_PID=$!
+
+# load python Flask LLM API in background process
+# `LLM_API_PORT` is read from the root `.env` which is sourced at the top of this script
+# If it's not set, default to 5001.
+LLM_API_PORT=${LLM_API_PORT:-5001}
+export LLM_API_PORT
+python -m api.llm.app &
+LLM_API_PID=$!
+
+# load npm server in background process
+npm run dev --silent --prefix bot-app &
+NPM_PID=$!
+
+# wait a second for npm to load then open browser and load bot-app
+sleep 1
+xdg-open "http://localhost:$VITE_PORT" &
+
+# load emulator
 eval "${1:-fceux-gui --loadlua \"$FFBOT_DIR/scripts/lua/main_daemon.lua\" $ROM_FILE}"
+
+# clean up background processes
 kill $PYTHON_PID
+kill $LLM_API_PID
+kill $NPM_PID
