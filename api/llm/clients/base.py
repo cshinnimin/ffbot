@@ -39,20 +39,27 @@ class LlmClient(ABC):
         if not isinstance(usage, dict):
             return data
 
-        pt = usage.get('prompt_tokens')
-        ct = usage.get('completion_tokens')
-        if pt is None or ct is None:
-            return data
+        prompt_count = usage.get('prompt_tokens')
+        completion_count = usage.get('completion_tokens')
+        prompt_string = f"[{self.__class__.__name__}] Prompt Tokens     : {prompt_count}"
+        completion_string = f"[{self.__class__.__name__}] Completion Tokens : {completion_count}"
+        
+        cached_string = ''
+        prompt_token_details = usage.get('prompt_tokens_details')
+        if isinstance(prompt_token_details, dict):
+            cached_count = prompt_token_details.get('cached_tokens')
+            cached_string = f"[{self.__class__.__name__}] Cached Tokens     : {cached_count}"
 
         # Step 5 - If token data present, print to terminal
-        prompt_count = f"[{self.__class__.__name__}] Prompt Tokens     : {pt}"
-        completion_count = f"[{self.__class__.__name__}] Completion Tokens : {ct}"
+        
         if USE_COLOUR:
-            print(f"\x1b[1;33m{prompt_count}\x1b[0m")
-            print(f"\x1b[1;33m{completion_count}\x1b[0m")
+            if prompt_string: print(f"\x1b[1;33m{prompt_string}\x1b[0m")
+            if cached_string: print(f"\x1b[1;33m{cached_string}\x1b[0m")
+            if completion_string: print(f"\x1b[1;33m{completion_string}\x1b[0m")
         else:
-            print(prompt_count)
-            print(completion_count)
+            if prompt_string: print(prompt_string)
+            if cached_string: print(cached_string)
+            if completion_string: print(completion_string)
 
         return data
 
