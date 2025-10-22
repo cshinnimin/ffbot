@@ -16,14 +16,22 @@ class LlmClient(ABC):
     def _post(self, url: str, headers: Dict[str, str], payload: Dict[str, Any], timeout: int = 60) -> Any:
         """Send a POST request with JSON and return parsed JSON."""
 
-        # Step 1 - Post the request to the LLM and put the response JSON in the `data` variable
-        print(f"[{self.__class__.__name__}] POST {url} model={payload.get('model')} msgs={len(payload.get('messages', []))}")
+        # Step 1 - Check whether to use colour in terminal logging
+        USE_COLOUR = sys.stdout.isatty() and not os.environ.get('NO_COLOR')
+
+        # Step 2 - Print information about LLM API endpoint URL, model
+        post_label = f"[{self.__class__.__name__}] POST {url} model={payload.get('model')} msgs={len(payload.get('messages', []))}"
+        if USE_COLOUR:
+            print(f"\x1b[1;33m{post_label}\x1b[0m")
+        else:
+            print(post_label)
+
+        # Step 3 - POST the message to the LLMs API and load the JSON response in to `data` variable
         res = requests.post(url, headers=headers, json=payload, timeout=timeout)
         res.raise_for_status()
         data = res.json()
-        # end Step 1
 
-        # Step 2 - Check if token usage information is present in the response
+        # Step 4 - Check if token usage information is present in the response
         if not isinstance(data, dict):
             return data
 
@@ -35,16 +43,16 @@ class LlmClient(ABC):
         ct = usage.get('completion_tokens')
         if pt is None or ct is None:
             return data
-        # end Step 2
 
-        # Step 3 - If token data present, print to terminal, in colour if possible
-        label = f"[{self.__class__.__name__}] tokens prompt={pt} completion={ct}"
-        if sys.stdout.isatty() and not os.environ.get('NO_COLOR'):
-            # Bold yellow for visibility in terminals
-            print(f"\x1b[1;33m{label}\x1b[0m")
+        # Step 5 - If token data present, print to terminal
+        prompt_count = f"[{self.__class__.__name__}] Prompt Tokens     : {pt}"
+        completion_count = f"[{self.__class__.__name__}] Completion Tokens : {ct}"
+        if USE_COLOUR:
+            print(f"\x1b[1;33m{prompt_count}\x1b[0m")
+            print(f"\x1b[1;33m{completion_count}\x1b[0m")
         else:
-            print(label)
-        # end Step 3
+            print(prompt_count)
+            print(completion_count)
 
         return data
 
