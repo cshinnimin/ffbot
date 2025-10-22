@@ -23,14 +23,10 @@ class OpenAIClient(LlmClient):
             "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
         }
 
-        # OpenAI expects streaming as SSE; here we do non-streaming to keep parity with frontend
-        print(f"[OpenAIClient] POST {url} model={model} msgs={len(messages)}")
-        res = requests.post(url, headers=headers, json=payload, timeout=60)
-        res.raise_for_status()
-        data = res.json()
-        # Convert OpenAI response into a plain string: return error message if present
+        data = self._post(url, headers, payload, timeout=60)
+
         if isinstance(data, dict) and data.get('error') and data['error'].get('message'):
-            return data['error']['message']
+            return '{answer: "' + data['error']['message'] + '"}'
 
         # Normal choice shape: choices[0].message.content
         try:

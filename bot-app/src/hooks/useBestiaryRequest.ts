@@ -51,16 +51,15 @@ export function useBestiaryRequest() {
       console.log(llmMessagesRef.current);
     }
     
-  const response = await getLlmResponse(llmMessagesRef.current);
-  // Response is the assistant's answer string
-  addLlmMessage('assistant', response);
+    const response = await getLlmResponse(llmMessagesRef.current);
+    addLlmMessage('assistant', response);
 
-  if (DEBUG_MODE) {
-    console.log('%cuseBestiary - requestMonstersByLocation - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
-    console.log(response);
-  }
+    if (DEBUG_MODE) {
+      console.log('%cuseBestiary - requestMonstersByLocation - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
+      console.log(response);
+    }
 
-  return response;
+    return response;
   }, [addLlmMessage]);
 
   /**
@@ -93,15 +92,14 @@ export function useBestiaryRequest() {
     }
 
   const response = await getLlmResponse(llmMessagesRef.current);
-  // Response is the assistant's answer string
-  addLlmMessage('assistant', response);
+    addLlmMessage('assistant', response);
 
-  if (DEBUG_MODE) {
-    console.log('%cuseBestiary - requestLocationsByMonster - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
-    console.log(response);
-  }
+    if (DEBUG_MODE) {
+      console.log('%cuseBestiary - requestLocationsByMonster - response:', 'color: #888888; font-size: 14px; font-weight: bold;');
+      console.log(response);
+    }
 
-  return response;
+    return response;
   }, [addLlmMessage, reverseBestiary]);
 
   return {

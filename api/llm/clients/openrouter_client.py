@@ -22,12 +22,8 @@ class OpenRouterClient(LlmClient):
             "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
         }
 
-        print(f"[OpenRouterClient] POST {url} model={model} msgs={len(messages)}")
-        res = requests.post(url, headers=headers, json=payload, timeout=60)
-        # Return shape similar to OpenAI (choices)
-        res.raise_for_status()
-        data = res.json()
-        # openrouter uses OpenAI-like shapes; return error message or first choice
+        data = self._post(url, headers, payload, timeout=60)
+
         if isinstance(data, dict) and data.get('error') and data['error'].get('message'):
             return data['error']['message']
 

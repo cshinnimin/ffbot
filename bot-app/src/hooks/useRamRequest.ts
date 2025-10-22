@@ -26,7 +26,6 @@ export function useRamRequest() {
 		}
 
 		const response = await getLlmResponse(llmMessagesRef.current);
-		// Response is now the assistant's answer string
 		addLlmMessage('assistant', response);
 		if (DEBUG_MODE) {
 			console.log('%cuseRamRequest - requestRamRead - response:', 'color: #ec9ba4; font-size: 14px; font-weight: bold;');

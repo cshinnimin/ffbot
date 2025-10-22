@@ -25,10 +25,7 @@ class OllamaClient(LlmClient):
             "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
         }
 
-        print(f"[OllamaClient] POST {url} model={model} msgs={len(messages)}")
-        res = requests.post(url, headers=headers, json=payload, timeout=60)
-        res.raise_for_status()
-        data = res.json()
+        data = self._post(url, headers, payload, timeout=60)
 
         try:
             if isinstance(data, dict) and data.get('error') and data['error'].get('message'):
