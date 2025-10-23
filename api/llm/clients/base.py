@@ -3,6 +3,17 @@ from typing import Any, Dict, List, Optional
 import requests
 import os
 import sys
+import threading
+import time
+
+# Module-level cumulative token counters (persist for lifetime of process)
+# They are protected by _cumulative_lock when updated.
+_cumulative_lock = threading.Lock()
+_cumulative_api_messages = 1
+_cumulative_api_seconds = 0.0
+_cumulative_prompt_tokens = 0
+_cumulative_completion_tokens = 0
+_cumulative_cached_tokens = 0
 
 
 # Interface (Base Class) for all LLM clients
@@ -10,53 +21,72 @@ class LlmClient(ABC):
     def __init__(self, config: Dict[str, Any]):
         self.config = config
 
+    # Private helper to safely coerce values to integers
+    def _safe_int(self, v: Any) -> int:
+        try:
+            return int(v) if v is not None else 0
+        except Exception:
+            return 0
+
 
     # Helper method for sending the payload and printing information about the request to the console
     # A leading underscore in the name signals (by convention) the method is internal / protected
     def _post(self, url: str, headers: Dict[str, str], payload: Dict[str, Any], timeout: int = 60) -> Any:
         """Send a POST request with JSON and return parsed JSON."""
-
         # Step 1 - Check whether to use colour in terminal logging
         USE_COLOUR = sys.stdout.isatty() and not os.environ.get('NO_COLOR')
 
-        # Step 2 - Print information about LLM API endpoint URL, model
+        # Step 2 - Print information about LLM API endpoint URL, model, and cumulative usage count
+        global _cumulative_api_messages
         post_label = f"[{self.__class__.__name__}] POST {url} model={payload.get('model')} msgs={len(payload.get('messages', []))}"
+        api_count_string = f"[{self.__class__.__name__}] API Message Count : {_cumulative_api_messages}"
         if USE_COLOUR:
             print(f"\x1b[1;33m{post_label}\x1b[0m")
+            print(f"\x1b[1;33m{api_count_string}\x1b[0m")
         else:
             print(post_label)
+            print(api_count_string)
 
         # Step 3 - POST the message to the LLMs API and load the JSON response in to `data` variable
+        start_time = time.perf_counter()
         res = requests.post(url, headers=headers, json=payload, timeout=timeout)
         res.raise_for_status()
         data = res.json()
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
 
-        # Step 4 - Check if token usage information is present in the response
-        if not isinstance(data, dict):
-            return data
+        # Step 4 - Get token usage from response, if present
+        usage = data.get('usage') if isinstance(data, dict) else {}
+        prompt_count = self._safe_int(usage.get('prompt_tokens'))
+        completion_count = self._safe_int(usage.get('completion_tokens'))
+        prompt_token_details = usage.get('prompt_tokens_details') if isinstance(usage, dict) else {}
+        cached_count = self._safe_int(prompt_token_details.get('cached_tokens') if isinstance(prompt_token_details, dict) else None)
 
-        usage = data.get('usage')
-        if not isinstance(usage, dict):
-            return data
+        # Step 5 - Update module-level cumulative counters in a thread-safe way
+        global _cumulative_prompt_tokens, _cumulative_completion_tokens, _cumulative_cached_tokens, _cumulative_api_seconds
+        with _cumulative_lock:
+            _cumulative_api_messages += 1
+            _cumulative_prompt_tokens += prompt_count
+            _cumulative_completion_tokens += completion_count
+            _cumulative_cached_tokens += cached_count
+            _cumulative_api_seconds += elapsed_time
 
-        prompt_count = usage.get('prompt_tokens')
-        completion_count = usage.get('completion_tokens')
-        prompt_string = f"[{self.__class__.__name__}] Prompt Tokens     : {prompt_count}"
-        completion_string = f"[{self.__class__.__name__}] Completion Tokens : {completion_count}"
-        
+        # Step 6 - Prepare strings to print information to the terminal console
+        time_string = f"[{self.__class__.__name__}] Request Time      : {elapsed_time:.1f}s (Total: {_cumulative_api_seconds:.1f}s)"
+        prompt_string = f"[{self.__class__.__name__}] Prompt Tokens     : {prompt_count} (Total: {_cumulative_prompt_tokens})"
+        completion_string = f"[{self.__class__.__name__}] Completion Tokens : {completion_count} (Total: {_cumulative_completion_tokens})"
         cached_string = ''
-        prompt_token_details = usage.get('prompt_tokens_details')
-        if isinstance(prompt_token_details, dict):
-            cached_count = prompt_token_details.get('cached_tokens')
-            cached_string = f"[{self.__class__.__name__}] Cached Tokens     : {cached_count}"
+        if cached_count is not None:
+            cached_string = f"[{self.__class__.__name__}] Cached Tokens     : {cached_count} (Total: {_cumulative_cached_tokens})"
 
-        # Step 5 - If token data present, print to terminal
-        
+        # Step 7 - Print token information to the terminal console
         if USE_COLOUR:
+            if time_string: print(f"\x1b[1;33m{time_string}\x1b[0m")
             if prompt_string: print(f"\x1b[1;33m{prompt_string}\x1b[0m")
             if cached_string: print(f"\x1b[1;33m{cached_string}\x1b[0m")
             if completion_string: print(f"\x1b[1;33m{completion_string}\x1b[0m")
         else:
+            if time_string: print(time_string)
             if prompt_string: print(prompt_string)
             if cached_string: print(cached_string)
             if completion_string: print(completion_string)
