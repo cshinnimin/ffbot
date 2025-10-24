@@ -29,7 +29,7 @@ if env_path.exists():
     except Exception:
         print("python-dotenv not installed; skipping .env load")
 
-# Import the OpenAIChatCompletionClient from the renamed package
+# Import the OpenAIChatCompletionClient
 try:
     from api.llm.chat_completion_client.openai_client import OpenAIChatCompletionClient
 except Exception as e:
