@@ -94,5 +94,4 @@ class ChatCompletionClientBase(ABC):
     @abstractmethod
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
         """ Return the assistant's answer as a plain string."""
-        
         raise NotImplementedError

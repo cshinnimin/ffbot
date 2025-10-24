@@ -1,7 +1,5 @@
 from typing import Any, Dict, List, Optional
-from abc import abstractmethod
-
-from ..clients.base import LlmClient
+from abc import ABC, abstractmethod
 
 import os, shutil
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
@@ -9,18 +7,14 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 
-class LangchainBase(LlmClient):
+TRAINING_FOLDER_PATH=f'../../../data/training/langchain'
+PRECHUNKED_DOCUMENTS_PATH = f'{TRAINING_FOLDER_PATH}/chunks/'
+CHROMA_PERSIST_DIRECTORY = '../../../data/chroma'
+
+class LangchainBase(ABC):
     def __init__(self, config: Dict[str, Any]):
-        super().__init__(config)
-
-        TRAINING_FOLDER_PATH=f'../../../data/training/langchain'
-        PRECHUNKED_DOCUMENTS_PATH = f'{TRAINING_FOLDER_PATH}/chunks/'
-        CHROMA_PERSIST_DIRECTORY = '../../../data/chroma'
-
-        # load initial instructions that will serve as the QA Chain Template
-        loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
-        documents = loader.load()
-        self.instructions = "\n".join([doc.page_content for doc in documents])
+        super().__init__()
+        self.config = config
 
         # load our API key from environment variables
         openai_key = self.config.get("LLM_API_KEY")
@@ -28,6 +22,17 @@ class LangchainBase(LlmClient):
             raise RuntimeError("Environment variable LLM_API_KEY is not set")
         os.environ['OPENAI_API_KEY'] = openai_key
 
+        # load initial instructions that will serve as the QA Chain Template
+        loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
+        documents = loader.load()
+        self.instructions = "\n".join([doc.page_content for doc in documents])
+
+        # If the Chroma persist directory is missing, create the vector DB now.
+        # This ensures a persisted vector store is available for use.
+        if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
+            self.create_vector_db()
+
+    def create_vector_db(self):
         # clear the chroma persist directory if it exists, so that
         # we can reload the vector DB from scratch
         if os.path.exists(CHROMA_PERSIST_DIRECTORY):
@@ -68,7 +73,18 @@ class LangchainBase(LlmClient):
         self.vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
         self.vectordb.add_texts(chunk_strings)
 
+
+    # Use the Template Method Pattern to define code that should be
+    # executed for all concrete instances of the base class 
+    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None):
+        """Publicly exposed method that ensures the vectordb is loaded"""
+        embedding = OpenAIEmbeddings()
+        self.vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
+        return self._chat(messages, temperature)
+
+    # Complete the Template Method Pattern by defining the abstract
+    # method the concrete classes are forced to implement
     @abstractmethod
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
-        """Abstract method — implement in subclasses."""
-        raise NotImplementedError()
+    def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
+        """ Return the assistant's answer as a plain string."""
+        raise NotImplementedError

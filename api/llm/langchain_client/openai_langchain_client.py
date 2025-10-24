@@ -9,7 +9,7 @@ class OpenAILangchainClient(LangchainBase):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
 
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
+    def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
         llm_model = self.config.get("LLM_MODEL")
         llm_temperature = self.config.get("LLM_TEMPERATURE")
 
