@@ -4,7 +4,7 @@ from time import sleep
 import os
 import requests
 from .config import get_config
-from .clients import create_client
+from .chat_completion_client import create_client
 
 def create_app() -> Flask:
     app = Flask(__name__)

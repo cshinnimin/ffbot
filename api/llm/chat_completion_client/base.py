@@ -15,8 +15,8 @@ _cumulative_prompt_tokens = 0
 _cumulative_completion_tokens = 0
 _cumulative_cached_tokens = 0
 
-# Interface (Base Class) for all LLM clients
-class LlmClient(ABC):
+# Interface (Base Class) for all Chat Completion clients
+class ChatCompletionClientBase(ABC):
     def __init__(self, config: Dict[str, Any]):
         self.config = config
 

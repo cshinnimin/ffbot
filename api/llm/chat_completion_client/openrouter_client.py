@@ -1,14 +1,13 @@
-import os
 from typing import Any, Dict, List, Optional
 import requests
 
-from .base import LlmClient
+from .base import ChatCompletionClientBase
 
-class OpenAIClient(LlmClient):
+class OpenRouterChatCompletionClient(ChatCompletionClientBase):
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
-        url = "https://api.openai.com/v1/chat/completions"
+        url = "https://openrouter.ai/api/v1/chat/completions"
         model = self.config.get("LLM_MODEL")
-        api_key = self.config.get("LLM_API_KEY") or os.environ.get("LLM_API_KEY")
+        api_key = self.config.get("LLM_API_KEY")
 
         headers = {
             "Content-Type": "application/json",
@@ -25,11 +24,9 @@ class OpenAIClient(LlmClient):
         data = self._post(url, headers, payload, timeout=60)
 
         if isinstance(data, dict) and data.get('error') and data['error'].get('message'):
-            return '{answer: "' + data['error']['message'] + '"}'
+            return data['error']['message']
 
-        # Normal choice shape: choices[0].message.content
         try:
             return data['choices'][0]['message']['content']
         except Exception:
-            # Fallback: return the raw JSON as string
             return str(data)

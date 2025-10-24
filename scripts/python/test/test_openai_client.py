@@ -29,11 +29,11 @@ if env_path.exists():
     except Exception:
         print("python-dotenv not installed; skipping .env load")
 
-# Import the OpenAIClient
+# Import the OpenAIChatCompletionClient from the renamed package
 try:
-    from api.llm.clients.openai_client import OpenAIClient
+    from api.llm.chat_completion_client.openai_client import OpenAIChatCompletionClient
 except Exception as e:
-    print("Failed to import OpenAIClient:", e)
+    print("Failed to import OpenAIChatCompletionClient:", e)
     sys.exit(1)
 
 message = sys.argv[1] if len(sys.argv) > 1 else "Hello from CLI, respond briefly."
@@ -51,7 +51,7 @@ config = {
     "LLM_TEMPERATURE": _maybe_float(os.environ.get("LLM_TEMPERATURE")),
 }
 
-client = OpenAIClient(config)
+client = OpenAIChatCompletionClient(config)
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": message},
