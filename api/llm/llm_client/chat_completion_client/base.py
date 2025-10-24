@@ -1,5 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Dict, List, Optional
+
+from .. import LlmClient
 import requests
 import os
 import sys
@@ -15,10 +17,10 @@ _cumulative_prompt_tokens = 0
 _cumulative_completion_tokens = 0
 _cumulative_cached_tokens = 0
 
-# Interface (Base Class) for all Chat Completion clients
-class ChatCompletionLlmClient(ABC):
+# Base class for all Chat Completion clients
+class ChatCompletionLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
-        self.config = config
+        super().__init__(config)
 
     # Private helper to safely coerce values to integers
     def _safe_int(self, v: Any) -> int:

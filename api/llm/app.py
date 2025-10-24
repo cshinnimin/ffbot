@@ -4,7 +4,7 @@ from time import sleep
 import os
 import requests
 from .config import get_config
-from .chat_completion_client import create_client
+from .llm_client import create_client
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -12,9 +12,10 @@ def create_app() -> Flask:
 
     config = get_config()
 
-    # Instantiate client via registry-based factory
+    # Instantiate LLM client via the factory in the llm_client package
     provider = config["LLM_PROVIDER"].lower()
     client = create_client(config)
+
     print(f"[LLM API] Initialized provider '{provider}' with model '{config.get('LLM_MODEL')}'")
 
     @app.route("/llm/config", methods=["GET", "OPTIONS"])

@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+
+from .. import LlmClient
 
 import os, shutil
 from pathlib import Path
@@ -10,14 +12,14 @@ from langchain.vectorstores import Chroma
 
 # resolve paths relative to the repository root so the code works
 # regardless of the current working directory when scripts are run
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 TRAINING_FOLDER_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain')
 PRECHUNKED_DOCUMENTS_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain' / 'chunks')
 CHROMA_PERSIST_DIRECTORY = str(PROJECT_ROOT / 'data' / 'chroma')
 
-class LangchainLlmClient(ABC):
+class LangchainLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
-        super().__init__()
+        super().__init__(config)
         self.config = config
 
         # load our API key from environment variables

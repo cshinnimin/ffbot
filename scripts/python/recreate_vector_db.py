@@ -48,7 +48,7 @@ except Exception:
 # Import the concrete client after attempting to load .env so module-level code
 # can pick up environment variables if needed.
 try:
-    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
+    from api.llm.llm_client.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
 except Exception as e:
     print(f"Failed to import OpenAILangchainLlmClient: {e}")
     sys.exit(2)

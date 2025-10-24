@@ -31,7 +31,7 @@ if env_path.exists():
 
 # Import the OpenAIChatCompletionLlmClient
 try:
-    from api.llm.chat_completion_client.openai_client import OpenAIChatCompletionLlmClient
+    from api.llm.llm_client.chat_completion_client.openai_client import OpenAIChatCompletionLlmClient
 except Exception as e:
     print("Failed to import OpenAIChatCompletionLlmClient:", e)
     sys.exit(1)

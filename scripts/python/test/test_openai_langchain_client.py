@@ -31,7 +31,7 @@ if env_path.exists():
 
 # Import the OpenAILangchainLlmClient
 try:
-    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
+    from api.llm.llm_client.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
 except Exception as e:
     print("Failed to import OpenAILangchainLlmClient:", e)
     sys.exit(1)
