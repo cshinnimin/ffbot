@@ -4,10 +4,9 @@ import requests
 
 from .base import LlmClient
 
-
 class OpenAIClient(LlmClient):
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
-        url = self.config.get("LLM_URL") or "https://api.openai.com/v1/chat/completions"
+        url = "https://api.openai.com/v1/chat/completions"
         model = self.config.get("LLM_MODEL")
         api_key = self.config.get("LLM_API_KEY") or os.environ.get("LLM_API_KEY")
 
@@ -34,5 +33,3 @@ class OpenAIClient(LlmClient):
         except Exception:
             # Fallback: return the raw JSON as string
             return str(data)
-
-

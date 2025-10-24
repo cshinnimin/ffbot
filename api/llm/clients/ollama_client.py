@@ -3,10 +3,10 @@ import requests
 
 from .base import LlmClient
 
-
 class OllamaClient(LlmClient):
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
-        url = self.config.get("LLM_URL") or "http://localhost:11434/api/chat"
+        port = self.config.get("LLM_PORT") or "11434"
+        url = "http://localhost:" + port +  "/api/chat"
         model = self.config.get("LLM_MODEL")
         keep_alive = self.config.get("LLM_KEEP_ALIVE", "30m")
 
@@ -34,5 +34,3 @@ class OllamaClient(LlmClient):
             return data['message']['content']
         except Exception:
             return str(data)
-
-

@@ -6,7 +6,6 @@ import requests
 from .config import get_config
 from .clients import create_client
 
-
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app)
@@ -66,11 +65,8 @@ def create_app() -> Flask:
 
     return app
 
-
 app = create_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("LLM_API_PORT", "5001"))
     app.run(host="0.0.0.0", port=port)
-
-

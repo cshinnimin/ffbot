@@ -15,7 +15,6 @@ _cumulative_prompt_tokens = 0
 _cumulative_completion_tokens = 0
 _cumulative_cached_tokens = 0
 
-
 # Interface (Base Class) for all LLM clients
 class LlmClient(ABC):
     def __init__(self, config: Dict[str, Any]):
@@ -27,7 +26,6 @@ class LlmClient(ABC):
             return int(v) if v is not None else 0
         except Exception:
             return 0
-
 
     # Helper method for sending the payload and printing information about the request to the console
     # A leading underscore in the name signals (by convention) the method is internal / protected
@@ -98,5 +96,3 @@ class LlmClient(ABC):
         """ Return the assistant's answer as a plain string."""
         
         raise NotImplementedError
-
-

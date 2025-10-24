@@ -31,7 +31,7 @@ if env_path.exists():
 
 # Import the OpenAILangchainClient
 try:
-    from api.llm.clients.openai_langchain_client import OpenAILangchainClient
+    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainClient
 except Exception as e:
     print("Failed to import OpenAILangchainClient:", e)
     sys.exit(1)
@@ -48,7 +48,6 @@ def _maybe_float(val):
 config = {
     "LLM_API_KEY": os.environ.get("LLM_API_KEY"),
     "LLM_MODEL": os.environ.get("LLM_MODEL"),
-    "LLM_URL": os.environ.get("LLM_URL"),
     "LLM_TEMPERATURE": _maybe_float(os.environ.get("LLM_TEMPERATURE")),
 }
 
