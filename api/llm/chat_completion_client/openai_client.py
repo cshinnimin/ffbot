@@ -2,9 +2,9 @@ import os
 from typing import Any, Dict, List, Optional
 import requests
 
-from .base import ChatCompletionClientBase
+from .base import ChatCompletionLlmClient
 
-class OpenAIChatCompletionClient(ChatCompletionClientBase):
+class OpenAIChatCompletionLlmClient(ChatCompletionLlmClient):
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
         url = "https://api.openai.com/v1/chat/completions"
         model = self.config.get("LLM_MODEL")

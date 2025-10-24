@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional
 import requests
 
-from .base import ChatCompletionClientBase
+from .base import ChatCompletionLlmClient
 
-class OpenRouterChatCompletionClient(ChatCompletionClientBase):
+class OpenRouterChatCompletionLlmClient(ChatCompletionLlmClient):
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
         url = "https://openrouter.ai/api/v1/chat/completions"
         model = self.config.get("LLM_MODEL")

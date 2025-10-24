@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for OpenAILangchainClient
+Test script for OpenAILangchainLlmClient
 
 Usage:
   From the /scripts/python/test folder containing this script:
@@ -29,11 +29,11 @@ if env_path.exists():
     except Exception:
         print("python-dotenv not installed; skipping .env load")
 
-# Import the OpenAILangchainClient
+# Import the OpenAILangchainLlmClient
 try:
-    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainClient
+    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
 except Exception as e:
-    print("Failed to import OpenAILangchainClient:", e)
+    print("Failed to import OpenAILangchainLlmClient:", e)
     sys.exit(1)
 
 message = sys.argv[1] if len(sys.argv) > 1 else "Hello from CLI, respond briefly."
@@ -51,7 +51,7 @@ config = {
     "LLM_TEMPERATURE": _maybe_float(os.environ.get("LLM_TEMPERATURE")),
 }
 
-client = OpenAILangchainClient(config)
+client = OpenAILangchainLlmClient(config)
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": message},

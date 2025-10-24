@@ -1,10 +1,10 @@
 from typing import Dict, Type
 
-from .base import LangchainBase
-from .openai_langchain_client import OpenAILangchainClient
+from .base import LangchainLlmClient
+from .openai_langchain_client import OpenAILangchainLlmClient
 
-PROVIDER_CLIENTS: Dict[str, Type[LangchainBase]] = {
-    "openai_langchain": OpenAILangchainClient,
+PROVIDER_CLIENTS: Dict[str, Type[LangchainLlmClient]] = {
+    "openai_langchain": OpenAILangchainLlmClient,
 }
 
 def create_client(config):

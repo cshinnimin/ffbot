@@ -15,7 +15,7 @@ TRAINING_FOLDER_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain')
 PRECHUNKED_DOCUMENTS_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain' / 'chunks')
 CHROMA_PERSIST_DIRECTORY = str(PROJECT_ROOT / 'data' / 'chroma')
 
-class LangchainBase(ABC):
+class LangchainLlmClient(ABC):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         self.config = config
@@ -25,6 +25,11 @@ class LangchainBase(ABC):
         if not openai_key:
             raise RuntimeError("Environment variable LLM_API_KEY is not set")
         os.environ['OPENAI_API_KEY'] = openai_key
+
+        # load initial instructions that will serve as the QA Chain Template
+        loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
+        documents = loader.load()
+        self.instructions = "\n".join([doc.page_content for doc in documents])
 
     def create_vector_db(self):
         # clear the chroma persist directory if it exists, so that
@@ -72,12 +77,6 @@ class LangchainBase(ABC):
     # executed for all concrete instances of the base class 
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None):
         """Publicly exposed method that ensures the vectordb is loaded"""
-        if self.vectordb:
-            # if the vector DB has already been loaded, just get on with
-            # the concrete chat inplementation of the concrete class
-            return self._chat(messages, temperature)
-
-        # if the vector DB is not in memory:
         if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
             # If the Chroma persist directory is missing, create the vector DB now.
             # This ensures a persisted vector store is available for use.

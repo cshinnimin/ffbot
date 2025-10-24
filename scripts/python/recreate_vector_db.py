@@ -48,9 +48,9 @@ except Exception:
 # Import the concrete client after attempting to load .env so module-level code
 # can pick up environment variables if needed.
 try:
-    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainClient
+    from api.llm.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
 except Exception as e:
-    print(f"Failed to import OpenAILangchainClient: {e}")
+    print(f"Failed to import OpenAILangchainLlmClient: {e}")
     sys.exit(2)
 
 
@@ -66,7 +66,7 @@ def main() -> None:
     }
 
     try:
-        client = OpenAILangchainClient(config)
+        client = OpenAILangchainLlmClient(config)
         # Explicitly recreate the vector DB
         client.create_vector_db()
         print("Vector DB created successfully.")

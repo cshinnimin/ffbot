@@ -1,16 +1,15 @@
 from typing import Dict, Type
 
-from .base import ChatCompletionClientBase
-from .openai_client import OpenAIChatCompletionClient
-from .openrouter_client import OpenRouterChatCompletionClient
-from .ollama_client import OllamaChatCompletionClient
+from .base import ChatCompletionLlmClient
+from .openai_client import OpenAIChatCompletionLlmClient
+from .openrouter_client import OpenRouterChatCompletionLlmClient
+from .ollama_client import OllamaChatCompletionLlmClient
 
-PROVIDER_CLIENTS: Dict[str, Type[ChatCompletionClientBase]] = {
-    "openai": OpenAIChatCompletionClient,
-    "openrouter": OpenRouterChatCompletionClient,
-    "ollama": OllamaChatCompletionClient,
+PROVIDER_CLIENTS: Dict[str, Type[ChatCompletionLlmClient]] = {
+    "openai": OpenAIChatCompletionLlmClient,
+    "openrouter": OpenRouterChatCompletionLlmClient,
+    "ollama": OllamaChatCompletionLlmClient,
 }
-
 
 def create_client(config):
     provider = str(config.get("LLM_PROVIDER", "")).lower()

@@ -1,11 +1,11 @@
 from typing import Any, Dict, List, Optional
 
-from .base import LangchainBase
+from .base import LangchainLlmClient
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-class OpenAILangchainClient(LangchainBase):
+class OpenAILangchainLlmClient(LangchainLlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
 

@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional
 import requests
 
-from .base import ChatCompletionClientBase
+from .base import ChatCompletionLlmClient
 
-class OllamaChatCompletionClient(ChatCompletionClientBase):
+class OllamaChatCompletionLlmClient(ChatCompletionLlmClient):
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
         port = self.config.get("LLM_PORT") or "11434"
         url = "http://localhost:" + port +  "/api/chat"
