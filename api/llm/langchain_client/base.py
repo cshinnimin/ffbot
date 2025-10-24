@@ -2,14 +2,18 @@ from typing import Any, Dict, List, Optional
 from abc import ABC, abstractmethod
 
 import os, shutil
+from pathlib import Path
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 
-TRAINING_FOLDER_PATH=f'../../../data/training/langchain'
-PRECHUNKED_DOCUMENTS_PATH = f'{TRAINING_FOLDER_PATH}/chunks/'
-CHROMA_PERSIST_DIRECTORY = '../../../data/chroma'
+# resolve paths relative to the repository root so the code works
+# regardless of the current working directory when scripts are run
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+TRAINING_FOLDER_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain')
+PRECHUNKED_DOCUMENTS_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain' / 'chunks')
+CHROMA_PERSIST_DIRECTORY = str(PROJECT_ROOT / 'data' / 'chroma')
 
 class LangchainBase(ABC):
     def __init__(self, config: Dict[str, Any]):
@@ -21,16 +25,6 @@ class LangchainBase(ABC):
         if not openai_key:
             raise RuntimeError("Environment variable LLM_API_KEY is not set")
         os.environ['OPENAI_API_KEY'] = openai_key
-
-        # load initial instructions that will serve as the QA Chain Template
-        loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
-        documents = loader.load()
-        self.instructions = "\n".join([doc.page_content for doc in documents])
-
-        # If the Chroma persist directory is missing, create the vector DB now.
-        # This ensures a persisted vector store is available for use.
-        if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
-            self.create_vector_db()
 
     def create_vector_db(self):
         # clear the chroma persist directory if it exists, so that
@@ -78,8 +72,21 @@ class LangchainBase(ABC):
     # executed for all concrete instances of the base class 
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None):
         """Publicly exposed method that ensures the vectordb is loaded"""
-        embedding = OpenAIEmbeddings()
-        self.vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
+        if self.vectordb:
+            # if the vector DB has already been loaded, just get on with
+            # the concrete chat inplementation of the concrete class
+            return self._chat(messages, temperature)
+
+        # if the vector DB is not in memory:
+        if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
+            # If the Chroma persist directory is missing, create the vector DB now.
+            # This ensures a persisted vector store is available for use.
+            self.create_vector_db()
+        else:
+            # Otherwise just load the existing vector DB
+            embedding = OpenAIEmbeddings()
+            self.vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
+
         return self._chat(messages, temperature)
 
     # Complete the Template Method Pattern by defining the abstract
