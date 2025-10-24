@@ -36,7 +36,7 @@ function ChatContainer() {
 
   const { clearLlmMessages } = useLlmMessages();
   const handleNewConversation = async () => {
-  setFullSpinner(true);
+    setFullSpinner(true);
 
     try {
       clearLlmMessages();
