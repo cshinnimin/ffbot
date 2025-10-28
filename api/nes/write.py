@@ -13,17 +13,8 @@ def write_addresses(addresses_json):
 	if addresses_json is None:
 		return "Missing addresses", 400
 
-	try:
-		if isinstance(addresses_json, str):
-			parsed = json.loads(addresses_json)
-			if isinstance(parsed, dict) and 'addresses' in parsed:
-				addresses = parsed['addresses']
-			else:
-				addresses = parsed
-		else:
-			addresses = addresses_json
-	except Exception as e:
-		return f"Invalid addresses JSON: {e}", 400
+	
+	addresses = addresses_json
 
 	# Normalize to a list of dicts
 	addresses_list = []

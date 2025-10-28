@@ -3,46 +3,16 @@
 Script to print contents of RAMDisk ram_contents.json that relate to ememy data, for debugging
 
 Usage:
-    From the /scripts/python folder containing this script:
-    set -o allexport; source ../../.env; set +o allexport; python print_monster_data.py
+    python print_monster_data.py
 """
 import json
 import os
 import sys
 from pathlib import Path
 
-
 def main():
-    # Attempt to load .env from the project root (three parents above this script).
-    # This ensures RAMDISK_DIR is set automatically without requiring the user to export it.
-    def load_dotenv_from_project_root():
-        script_path = Path(__file__).resolve()
-        # project root is three parents up: scripts/python -> scripts -> project root
-        try:
-            project_root = script_path.parents[2]
-        except IndexError:
-            return
-        env_path = project_root / ".env"
-        if not env_path.exists():
-            return
-        try:
-            with env_path.open("r", encoding="utf-8") as ef:
-                for line in ef:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    if "=" not in line:
-                        continue
-                    k, v = line.split("=", 1)
-                    k = k.strip()
-                    v = v.strip().strip('\"').strip("\'")
-                    # Set/override environment variables from .env
-                    os.environ[k] = v
-        except Exception:
-            # Don't fail just because .env couldn't be parsed; proceed and let missing vars error later
-            return
-
-    load_dotenv_from_project_root()
+    from load_env import load_env
+    load_env()
 
     ramdisk = os.environ.get("RAMDISK_DIR")
     if not ramdisk:

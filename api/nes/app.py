@@ -1,9 +1,10 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from .config import get_config
 from .write_lua import write_lua_script
 from .write import write_addresses
+from .read import read_addresses
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -19,7 +20,7 @@ def create_app() -> Flask:
         payload = request.get_json(silent=True) or {}
         lua_script = payload.get('lua_script')
         message, status = write_lua_script(lua_script)
-        
+
         return (message, status)
 
     @app.route('/nes/write', methods=['POST', 'OPTIONS'])
@@ -32,6 +33,20 @@ def create_app() -> Flask:
         message, status = write_addresses(addresses)
 
         return (message, status)
+
+    @app.route('/nes/read', methods=['POST', 'OPTIONS'])
+    def _read_route():
+        if request.method == 'OPTIONS':
+            return ('', 200)
+        
+        payload = request.get_json(silent=True) or {}
+        addresses = payload.get('addresses')
+        result, status = read_addresses(addresses)
+
+        if status != 200:
+            return (jsonify({"error": result}), status)
+        
+        return (jsonify(result), 200)
 
     return app
 
