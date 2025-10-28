@@ -32,7 +32,7 @@ def create_app() -> Flask:
         }
         return jsonify(public_config)
 
-    @app.route("/llm/get_response", methods=["POST", "OPTIONS"])
+    @app.route("/llm/get-response", methods=["POST", "OPTIONS"])
     def get_response():
         if request.method == "OPTIONS":
             return ("", 200)

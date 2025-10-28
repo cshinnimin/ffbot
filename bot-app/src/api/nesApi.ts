@@ -144,7 +144,8 @@ export async function sendLuaScript(luaScript: string) {
   // Read port from .env, if not found, default to 5000
   const port = import.meta.env.NES_API_PORT || '5000';
 
-  const url = `http://localhost:${port}/write_ram`;
+  // updated route name in backend: write-lua
+  const url = `http://localhost:${port}/nes/write-lua`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
