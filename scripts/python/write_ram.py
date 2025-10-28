@@ -13,22 +13,9 @@ import argparse
 import json
 import os
 import sys
-from pathlib import Path
 from typing import Any
 
 import requests
-
-# Ensure repository root is on sys.path so imports like `from load_env import load_env`
-# work regardless of the current working directory. We look upward from this
-# script and stop when we find a marker that indicates the repo root.
-repo_root = Path(__file__).resolve()
-for _ in range(6):
-    if (repo_root / ".env").exists() or (repo_root / "README.md").exists() or (repo_root / "api").exists():
-        break
-    if repo_root.parent == repo_root:
-        break
-    repo_root = repo_root.parent
-sys.path.insert(0, str(repo_root))
 
 from load_env import load_env
 load_env()
