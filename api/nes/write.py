@@ -4,7 +4,6 @@ import json
 config = get_config()
 FILENAME = config['RAMDISK_DIR'] + "execute.lua"
 
-
 def write_addresses(addresses_json):
 	"""
 	Generate a Lua script from an addresses payload and write it to execute.lua.
@@ -12,7 +11,6 @@ def write_addresses(addresses_json):
 	"""
 	if addresses_json is None:
 		return "Missing addresses", 400
-
 	
 	addresses = addresses_json
 
