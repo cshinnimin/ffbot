@@ -24,11 +24,11 @@ touch $RAMDISK_DIR/ram_contents.json
 cp data/ram_catalog.json $RAMDISK_DIR/ram_catalog.json
 cp data/bestiary.json $RAMDISK_DIR/bestiary.json
 
-# load python NES write_ram Flask app in background process
-python -m api.nes.write_ram &
+# load python NES Flask app in background process (registers all /nes routes)
+python -m api.nes.app &
 PYTHON_PID=$!
 
-# load python Flask LLM API in background process
+# load python Flask LLM API in background process (registers all /llm routes)
 # `LLM_API_PORT` is read from the root `.env` which is sourced at the top of this script
 # If it's not set, default to 5001.
 LLM_API_PORT=${LLM_API_PORT:-5001}

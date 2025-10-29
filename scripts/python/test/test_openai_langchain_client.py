@@ -3,31 +3,23 @@
 Test script for OpenAILangchainLlmClient
 
 Usage:
-  From the /scripts/python/test folder containing this script:
-  set -o allexport; source ../../../.env; set +o allexport; python test_openai_langchain_client.py "Hi"
+  python test_openai_langchain_client.py "Hi"
 
-This script will try to load a .env file from the repository root using python-dotenv if available,
-build a config dict from environment variables, instantiate the client, and print the response.
+This script will instantiate the client, and print the response
 """
 
 import os
 import sys
 from pathlib import Path
 
-# Ensure repo root is on sys.path so package imports work when run from repo root
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT))
+# Add folders where imports live to sys.path so package imports work
+API_DIR = Path(__file__).resolve().parents[3]
+LOAD_ENV_DIR = Path(__file__).resolve().parents[1];
+sys.path.insert(0, str(API_DIR))
+sys.path.insert(0, str(LOAD_ENV_DIR))
 
-# Try to load .env if present
-env_path = ROOT / ".env"
-if env_path.exists():
-    try:
-        from dotenv import load_dotenv
-
-        load_dotenv(dotenv_path=str(env_path))
-        print(f"Loaded .env from {env_path}")
-    except Exception:
-        print("python-dotenv not installed; skipping .env load")
+from load_env import load_env
+load_env()
 
 # Import the OpenAILangchainLlmClient
 try:

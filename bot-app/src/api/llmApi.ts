@@ -7,7 +7,7 @@ export async function getLlmResponse(
   conversation: LlmMessage[]
 ): Promise<any> {
   try {
-    const flaskUrl = '/llm/get_response';
+    const flaskUrl = '/llm/get-response';
     const response = await fetch(flaskUrl, {
       method: 'POST',
       headers: {
