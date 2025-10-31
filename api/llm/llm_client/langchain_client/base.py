@@ -5,7 +5,7 @@ from .. import LlmClient
 
 import os, shutil
 from pathlib import Path
-from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
+from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader, TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
@@ -29,7 +29,8 @@ class LangchainLlmClient(LlmClient):
         os.environ['OPENAI_API_KEY'] = openai_key
 
         # load initial instructions that will serve as the QA Chain Template
-        loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
+        #loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
+        loader = TextLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
         documents = loader.load()
         self.instructions = "\n".join([doc.page_content for doc in documents])
 
@@ -45,7 +46,8 @@ class LangchainLlmClient(LlmClient):
         loader = DirectoryLoader(
             PRECHUNKED_DOCUMENTS_PATH,
             glob="**/*.md",
-            loader_cls=UnstructuredMarkdownLoader
+            #loader_cls=UnstructuredMarkdownLoader
+            loader_cls=TextLoader
         )
 
         # UnstructuredMarkdownLoader.load returns a List[Document]
@@ -57,7 +59,8 @@ class LangchainLlmClient(LlmClient):
         # is designed to be split by newline as each line will have a
         # separate context unrelated to any of the others
 
-        loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/hints.md")
+        #loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/hints.md")
+        loader = TextLoader(f"{TRAINING_FOLDER_PATH}/hints.md")
         documents = loader.load()
         hints_text = "\n".join([doc.page_content for doc in documents])
 

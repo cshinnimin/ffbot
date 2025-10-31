@@ -1,6 +1,7 @@
 from .config import get_config
 import json
 from typing import Tuple, Dict, Any, List
+from langchain.tools import tool
 
 """
 Read endpoint implementation.
@@ -100,13 +101,23 @@ def _confirm_imp(address: str, ram_contents: Dict[str, str]) -> str:
         return ""
     return "Imp"
 
-
+@tool
 def read_addresses(addresses: List[str]) -> Tuple[Dict[str, Any], int]:
     """
-    Read RAM values for the given addresses list and translate them into values meaningful
-    to a human or an LLM.
-    
-    Returns (result, status). On success result is {"addresses": {...}}.
+    Reads dynamic RAM values for the given addresses list and translates them into
+    values meaningful to a human or an LLM.
+
+    Input: `List[str] addresses`: The requested RAM addresses. Must always be
+        in hex format with six characters following the '0x'. Example:
+        ["0x00001C", "0x006110"]
+
+    Output 1: `Dict[str,str] result`: The key is the memory address requested and the value 
+        is its meaningful, human readable value. Example:
+        {{"0x00001C": "in battle", "0x006110": "25"}}
+
+    Output 2: `int status`: The HTTP code for the response.
+
+    Returns (result, status)
     """
 
     # Validate input type
