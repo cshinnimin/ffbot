@@ -18,20 +18,6 @@ def create_app() -> Flask:
 
     print(f"[LLM API] Initialized provider '{provider}' with model '{config.get('LLM_MODEL')}'")
 
-    @app.route("/llm/config", methods=["GET", "OPTIONS"])
-    def get_public_config():
-        if request.method == "OPTIONS":
-            return ("", 200)
-        # Return only non-sensitive config for the React app
-        public_config = {
-            "provider": provider,
-            "model": config.get("LLM_MODEL"),
-            "temperature": float(config.get("LLM_TEMPERATURE", 0.4)),
-            "keep_alive": config.get("LLM_KEEP_ALIVE", ""),
-            "throttle_delay": int(config.get("LLM_THROTTLE_DELAY", 0)),
-        }
-        return jsonify(public_config)
-
     @app.route("/llm/get-response", methods=["POST", "OPTIONS"])
     def get_response():
         if request.method == "OPTIONS":
