@@ -29,10 +29,11 @@ class LangchainLlmClient(LlmClient):
         os.environ['OPENAI_API_KEY'] = openai_key
 
         # load initial instructions that will serve as the QA Chain Template
-        #loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
+        # use a TextLoader rather than an UnstructuredMarkdownLoader so that no attempts
+        # are made to replace <variable> tags or other such placeholders
         loader = TextLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
         documents = loader.load()
-        self.instructions = "\n".join([doc.page_content for doc in documents])
+        self._initial_instructions = "\n".join([doc.page_content for doc in documents])
 
     def create_vector_db(self):
         # clear the chroma persist directory if it exists, so that

@@ -98,23 +98,14 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             _instruction_vectorstore = None
 
 
-    def retrieve_instructions_for_input(self, user_input: str, k: int = 6) -> str:
+    def _retrieve_instructions_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
-        Retrieve top-k instruction chunks and concatenate them.
-        If no index is configured, returns a simple default instruction set.
+        Retrieve top-k instruction chunks from the vector DB and concatenate them.
+        Always include initial instructions from data/training/langchain/initial-instructions.md
+        in every message that goes to the LLM, followed by the top-k instruction chunks.
         """
-        if _instruction_vectorstore is None:
-            return (
-                "DEFAULT OPERATIONAL INSTRUCTIONS: Follow safe defaults. Ask clarifying questions when data is missing. "
-                "Do not perform destructive writes without explicit user confirmation."
-            )
         docs: List[Document] = _instruction_vectorstore.similarity_search(user_input, k=k)
-        if not docs:
-            return (
-                "DEFAULT OPERATIONAL INSTRUCTIONS: Follow safe defaults. Ask clarifying questions when data is missing. "
-                "Do not perform destructive writes without explicit user confirmation."
-            )
-        return "\n---\n".join([d.page_content for d in docs])
+        return self._initial_instructions + "\n---\n".join([d.page_content for d in docs])
 
     # ----------------------
     # Helpers to build tools and agent once per session
@@ -229,7 +220,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         self.append_message(session_id, "user", user_input)
 
         # 2) Retrieve instruction chunks relevant to this input
-        instructions_text = self.retrieve_instructions_for_input(user_input, k=k)
+        instructions_text = self._retrieve_instructions_from_vector_db(user_input, k=k)
         print()
         print('instructions for prompt: ' + instructions_text)
 
@@ -244,10 +235,8 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         # The Agent's prompt was created to accept "input", "instructions", and "history".
         # Run the agent — it may call wrapped tools which will log themselves into session state.
-        #result = executor.run({"input": user_input, "instructions": instructions_text, "history": history_text})
-        #result = executor.run({"input": user_input, "instructions": self.instructions + "\n" + instructions_text, "history": history_text})
         with get_openai_callback() as cb:
-            result = executor.run({"input": user_input, "instructions": self.instructions + "\n" + instructions_text, "history": history_text})
+            result = executor.run({"input": user_input, "instructions": instructions_text, "history": history_text})
             print(f"Total Tokens: {cb.total_tokens}")
             print(f"Prompt Tokens: {cb.prompt_tokens}")
             print(f"Cached Tokens: {cb.prompt_tokens_cached}")
