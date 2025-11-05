@@ -35,7 +35,9 @@ class LangchainLlmClient(LlmClient):
         documents = loader.load()
         self._initial_instructions = "\n".join([doc.page_content for doc in documents])
 
-    def create_vector_db(self):
+    # Recreate the vector database used for the training instructions in data/training/langchain
+    # This is a publicly exposed method that can be invoked by external scripts or consumers
+    def recreate_vector_db(self):
         # clear the chroma persist directory if it exists, so that
         # we can reload the vector DB from scratch
         if os.path.exists(CHROMA_PERSIST_DIRECTORY):
@@ -75,8 +77,8 @@ class LangchainLlmClient(LlmClient):
         # create a Chroma DB vector store and add chunks to it as lists of strings
         embedding = OpenAIEmbeddings()
         # store the Chroma vector DB on the instance so other methods can access it
-        self.vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
-        self.vectordb.add_texts(chunk_strings)
+        self._vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
+        self._vectordb.add_texts(chunk_strings)
 
 
     # Use the Template Method Pattern to define code that should be
@@ -86,11 +88,11 @@ class LangchainLlmClient(LlmClient):
         if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
             # If the Chroma persist directory is missing, create the vector DB now.
             # This ensures a persisted vector store is available for use.
-            self.create_vector_db()
+            self.recreate_vector_db()
         else:
             # Otherwise just load the existing vector DB
             embedding = OpenAIEmbeddings()
-            self.vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
+            self._vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
 
         return self._chat(messages, temperature)
 

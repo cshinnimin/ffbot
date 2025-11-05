@@ -24,9 +24,6 @@ from langchain_community.callbacks import get_openai_callback
 # ----------------------
 _sessions: Dict[str, Dict[str, Any]] = {}
 
-_instruction_vectorstore: Optional[Chroma] = None
-_embeddings = None
-
 class ReadAddressesInput(BaseModel):
     addresses: List[str] = Field(description="The RAM addresses we want the values for.")
 
@@ -81,30 +78,13 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         # Add a human-readable tool message into messages so the assistant sees it in history
         self.append_message(session_id, "tool", f"Tool `{tool_name}` called with args: {args}. Result: {result}", ts=event["ts"])
 
-
-    # ----------------------
-    # Instruction index init + retrieval
-    # ----------------------
-    def initialize_instruction_index(self, persist_directory: Optional[str] = None) -> None:
-        """
-        Initialize embeddings and a Chroma vectorstore containing your instruction chunks.
-        Call this once at app startup (or when creating the first session).
-        """
-        global _instruction_vectorstore, _embeddings
-        _embeddings = OpenAIEmbeddings()
-        if persist_directory:
-            _instruction_vectorstore = Chroma(persist_directory=persist_directory, embedding_function=_embeddings)
-        else:
-            _instruction_vectorstore = None
-
-
     def _retrieve_instructions_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
         Retrieve top-k instruction chunks from the vector DB and concatenate them.
         Always include initial instructions from data/training/langchain/initial-instructions.md
         in every message that goes to the LLM, followed by the top-k instruction chunks.
         """
-        docs: List[Document] = _instruction_vectorstore.similarity_search(user_input, k=k)
+        docs: List[Document] = self._vectordb.similarity_search(user_input, k=k)
         return self._initial_instructions + "\n---\n".join([d.page_content for d in docs])
 
     # ----------------------
@@ -184,7 +164,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     # ----------------------
     # Public API: start_session + send_message
     # ----------------------
-    def start_session(self, session_id: str, persist_dir_for_instructions: Optional[str] = None, llm: Optional[OpenAI] = None) -> None:
+    def start_session(self, session_id: str, llm: Optional[OpenAI] = None) -> None:
         """
         Start a new session (called on page load or manual Reset Conversation).
         - Initializes session state, instruction index (if provided), tools, and AgentExecutor.
@@ -192,14 +172,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         """
         self.create_session_state(session_id)
 
-        if persist_dir_for_instructions:
-            self.initialize_instruction_index(persist_directory=persist_dir_for_instructions)
-        else:
-            # If you don't pass a persist directory, the instruction index must be initialized separately
-            # via initialize_instruction_index() with a directory before using retrieval.
-            pass
-
-        # Create the agent + tools for this session and store them
+        # Create the agent and tools for this session and store them
         executor = self._create_agent_executor_for_session(session_id, llm=llm)
         tools = self._make_tool_wrappers_for_session(session_id)
 
@@ -254,54 +227,9 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
 
     def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
-        # llm_model = self.config.get("LLM_MODEL")
-        # llm_temperature = self.config.get("LLM_TEMPERATURE")
-
-        # llm = ChatOpenAI(
-        #     model_name=llm_model,
-        #     temperature=llm_temperature
-        # )
-
-        # llm_with_tools = llm.bind_tools([read_addresses])
-
-        # QA_CHAIN = RetrievalQA.from_chain_type(
-        #     llm,
-        #     retriever=self.vectordb.as_retriever(),
-        #     chain_type="stuff" ## Specify the type of chain, like 'map_reduce' or 'stuff'
-        # )
-
-        # template = self.instructions + """
-
-        #     # Context
-
-        #     {context}
-
-        #     # Question
-
-        #     {question}
-        # """
-
-        # QA_CHAIN_PROMPT = PromptTemplate(template=template, input_variables=["context", "question"])
-        # QA_CHAIN_PROMPT_SETTINGS = RetrievalQA.from_chain_type(
-        #     llm,
-        #     retriever=self.vectordb.as_retriever(),
-        #     return_source_documents=True,
-        #     chain_type_kwargs={"prompt": QA_CHAIN_PROMPT}
-        # )
-
-        # result = QA_CHAIN_PROMPT_SETTINGS({"query": messages[1]['content']})
-        # # print and return the result text
-        # print(result.get("result"))
-        # return result.get("result")
-
-        from pathlib import Path
-        PROJECT_ROOT = Path(__file__).resolve().parents[4]
-        CHROMA_PERSIST_DIRECTORY = str(PROJECT_ROOT / 'data' / 'chroma')
-        TRAINING_FOLDER_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain')
-
         sid = "demo-session"
         # On page load or "New Conversation" click:
-        self.start_session(sid, persist_dir_for_instructions=CHROMA_PERSIST_DIRECTORY)  # pass your chroma dir if you have one
+        self.start_session(sid)
 
         # Simulate user turns:
         print("User: Where am I?")

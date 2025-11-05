@@ -4,7 +4,7 @@ Script to (re)create the LangChain Chroma vector DB.
 
 This script instantiates the concrete LangChain client which will
 load configuration (including the OpenAI API key) and then calls
-create_vector_db() to build the persisted vector store.
+recreate_vector_db() to build the persisted vector store.
 
 Usage:
     python3 scripts/python/recreate_vector_db.py
@@ -47,7 +47,7 @@ def main() -> None:
     try:
         client = OpenAILangchainLlmClient(config)
         # Explicitly recreate the vector DB
-        client.create_vector_db()
+        client.recreate_vector_db()
         print("Vector DB created successfully.")
     except Exception as exc:
         print(f"Failed to create vector DB: {exc}")
