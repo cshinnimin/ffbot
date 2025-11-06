@@ -62,6 +62,7 @@ function ChatContainer() {
         timeString = ` Training took ${minutes > 0 ? minutes + ' minute' + (minutes !== 1 ? 's' : '') + ' and ' : ''}${seconds} second${seconds !== 1 ? 's' : ''}.`;
       }
 
+      debugger;
       addAppMessage('Bot', llmResponse + timeString);
     } finally {
       setFullSpinner(false);

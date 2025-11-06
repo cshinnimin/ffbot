@@ -13,7 +13,7 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 
-from api.nes.read import read_addresses
+from api.nes.read import read_addresses_tool
 
 # resolve paths relative to the repository root so the code works
 # regardless of the current working directory when scripts are run
@@ -58,35 +58,11 @@ class LangchainLlmClient(LlmClient):
         """
         Create the Tool objects for Langchain to use.
         """
-        def make_tool_wrapper(tool_name: str, func):
-            """
-            Wrap all tool functions in a wrapper function. This wrapper function will
-            be responsible for printing information about the tool being called to the
-            CLI as well as formatting data going to and coming from the LLM / Langchain
-            """
-            def wrapped_tool(arg_str: str):
-                tool_call_header = 'Calling ' + tool_name + ':'
-                print()
-                if (_USE_COLOUR):
-                    print(f"\x1b[1;33m{tool_call_header}\x1b[0m")
-                    print('arg_str = ' + arg_str)
-                else: 
-                    print(tool_call_header)
-                    print('arg_str = ' + arg_str)
-
-                # use json.loads to convert string to tool function expected List
-                result = func({"addresses" : json.loads(arg_str)})
-                print('result = ' + json.dumps(result[0])) # print result to console]
-
-                # use json.dumps to convert Dict to string format for LLM
-                return json.dumps(result[0])
-            
-            return wrapped_tool
 
         tools = [
             Tool(
                 name="read_addresses",
-                func=make_tool_wrapper("read_addresses", read_addresses),
+                func=read_addresses_tool,
                 description="""
                     Reads dynamic RAM values for the given addresses list and translates them into
                     values meaningful to a human or an LLM.
@@ -135,6 +111,15 @@ class LangchainLlmClient(LlmClient):
         llm_chain = LLMChain(llm=llm, prompt=agent_prompt)
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
         executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
+
+        executor_created_text = "Created AgentExecutor (temperature = " + str(temperature) + ').'
+        if (_USE_COLOUR):
+            print()
+            print(f"\x1b[1;33m{executor_created_text}\x1b[0m")
+        else:
+            print()
+            print(executor_created_text)
+
         return executor
     
 
