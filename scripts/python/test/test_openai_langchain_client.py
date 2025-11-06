@@ -51,8 +51,10 @@ messages = [
 
 print("Sending message:", message)
 
+temperature = 0
+
 try:
-    response = client.chat(messages)
+    response = client.chat(messages, temperature=temperature)
     print("\nResponse:\n", response)
 except Exception as e:
     print("Error calling chat:", e)
