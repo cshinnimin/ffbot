@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
       // Ports are safe to expose (not secrets) and will be injected at build/dev time
       'import.meta.env.NES_API_PORT': JSON.stringify(env.NES_API_PORT || '5000'),
       'import.meta.env.LLM_API_PORT': JSON.stringify(env.LLM_API_PORT || '5001'),
+      'import.meta.env.LLM_PROVIDER': JSON.stringify(env.LLM_PROVIDER || 'ollama')
     },
     server: {
       port: parseInt(env.VITE_PORT || '5173'),

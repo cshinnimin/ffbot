@@ -58,7 +58,6 @@ class LangchainLlmClient(LlmClient):
         """
         Create the Tool objects for Langchain to use.
         """
-
         tools = [
             Tool(
                 name="read_addresses",

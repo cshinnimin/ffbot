@@ -13,6 +13,7 @@ function ChatContainer() {
   
   // second, import what we need from hooks
   const { sendLlmMessage } = useLlm();
+  const { clearLlmMessages } = useLlmMessages();
 
   // Spinner state
   const [fullSpinnerOn, setFullSpinner] = React.useState(false);
@@ -34,8 +35,8 @@ function ChatContainer() {
     }
   };
 
-  const { clearLlmMessages } = useLlmMessages();
-  const handleNewConversation = async () => {
+  // New Conversation handler used when running with a ChatCompletion provider
+  const handleNewChatCompletionConversation = async () => {
     setFullSpinner(true);
 
     try {
@@ -62,19 +63,27 @@ function ChatContainer() {
         timeString = ` Training took ${minutes > 0 ? minutes + ' minute' + (minutes !== 1 ? 's' : '') + ' and ' : ''}${seconds} second${seconds !== 1 ? 's' : ''}.`;
       }
 
-      debugger;
       addAppMessage('Bot', llmResponse + timeString);
     } finally {
       setFullSpinner(false);
     }
   };
 
+  // New Conversation handler used when running with a LangChain provider
+  const handleNewLangchainConversation = () => {
+    clearLlmMessages();
+    clearAppMessages();
+    addAppMessage('Bot', 'I am ready. Training was instantaneous.');
+  };
+
+  const llmProvider = import.meta.env.LLM_PROVIDER;
+
   return (
     <ChatLayout spinnerOn={fullSpinnerOn}>
       <ChatWindow appMessages={appMessages} />
       <ChatInput
         onSend={handleSend}
-        onRestartLlm={handleNewConversation}
+        onRestartLlm={llmProvider.includes('langchain') ? handleNewLangchainConversation : handleNewChatCompletionConversation}
         inputSpinnerOn={inputSpinnerOn}
         fullSpinnerOn={fullSpinnerOn}
       />
