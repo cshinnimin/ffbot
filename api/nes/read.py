@@ -1,5 +1,3 @@
-import os
-import sys
 import json
 from .config import get_config
 from typing import Tuple, Dict, Any, List
@@ -20,7 +18,7 @@ _RAMDISK_DIR = _config['RAMDISK_DIR']
 _RAM_CATALOG_PATH = _RAMDISK_DIR + 'ram_catalog.json'
 _RAM_CONTENTS_PATH = _RAMDISK_DIR + 'ram_contents.json'
 
-_USE_COLOUR = sys.stdout.isatty() and not os.environ.get('NO_COLOR')
+from api.utils.console import print_to_console
 
 def _load_ram_catalog() -> Dict[str, Any]:
     """
@@ -200,14 +198,9 @@ def read_addresses_tool(arg_str: str) -> str:
     Input example: '["0x006BE4","0x006BE5"]'
     Output example: '{"addresses": {"0x006BE4": "Imp", "0x006BE5": ""}}'
     """
-    tool_call_console_text = 'Calling read_addresses tool:'
-    print()
-    if (_USE_COLOUR):
-        print(f"\x1b[1;33m{tool_call_console_text}\x1b[0m")
-        print('arg_str = ' + arg_str)
-    else:
-        print(tool_call_console_text)
-        print('arg_str = ' + arg_str)
+    print_to_console()
+    print_to_console('Calling read_addresses tool:', color='yellow')
+    print_to_console('arg_str = ' + arg_str)
 
     # Parse addresses from the LLM-provided JSON string
     try:
@@ -220,7 +213,7 @@ def read_addresses_tool(arg_str: str) -> str:
         # propagate as exception for LangChain usage
         raise RuntimeError(f"read_addresses failed: {result}")
     
-    print('result = ' + json.dumps(result)) # print result to console
+    print_to_console('result = ' + json.dumps(result)) # print result to console
     return json.dumps(result)
 
 __all__ = ["read_addresses", "read_addresses_tool"]

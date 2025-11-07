@@ -3,7 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from .base import LangchainLlmClient, _USE_COLOUR
+from .base import LangchainLlmClient
+from api.utils.console import print_to_console
 from langchain.schema import Document
 from langchain_community.callbacks import get_openai_callback
 
@@ -55,19 +56,14 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
         new_message = messages[-1].get("content", "") if messages else ""
 
-        # Search the vector DB fir instructions relevant to this message
+        # Search the vector DB for instructions relevant to this message
+        print_to_console('Searching vector DB for relevant instructions...', 'yellow')
         docs: List[Document] = self._vectordb.similarity_search(new_message, k=6)
         instructions_text = self._initial_instructions + "\n---\n".join([d.page_content for d in docs])
-        instruction_text_header = "Instructions Retrieved from Vector DB:"
 
-        if (_USE_COLOUR):
-            print()
-            print(f"\x1b[1;33m{instruction_text_header}\x1b[0m")
-            print(instructions_text)
-        else:
-            print()
-            print(instruction_text_header)
-            print(instructions_text)
+        print_to_console()
+        print_to_console('Instructions Retrieved from Vector DB:', color='yellow')
+        print_to_console(instructions_text)
 
         with get_openai_callback() as cb:
             result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": []})
@@ -79,17 +75,10 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             cost_string = f"Total Cost (USD): ${cb.total_cost}"
 
             print()
-            if (_USE_COLOUR):
-                print(f"\x1b[1;33m{total_string}\x1b[0m")
-                print(f"\x1b[1;33m{prompt_string}\x1b[0m")
-                print(f"\x1b[1;33m{cached_string}\x1b[0m")
-                print(f"\x1b[1;33m{completion_string}\x1b[0m")
-                print(f"\x1b[1;33m{cost_string}\x1b[0m")
-            else:
-                print(total_string)
-                print(prompt_string)
-                print(cached_string)
-                print(completion_string)
-                print(cost_string)
+            print_to_console(total_string, color='yellow')
+            print_to_console(prompt_string, color='yellow')
+            print_to_console(cached_string, color='yellow')
+            print_to_console(completion_string, color='yellow')
+            print_to_console(cost_string, color='yellow')
 
         return result

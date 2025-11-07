@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 from .. import LlmClient
 
-import os, shutil, sys, json
+import os, shutil
 from pathlib import Path
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader, TextLoader
 from langchain_text_splitters import CharacterTextSplitter
@@ -14,6 +14,7 @@ from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 
 from api.nes.read import read_addresses_tool
+from api.utils.console import print_to_console
 
 # resolve paths relative to the repository root so the code works
 # regardless of the current working directory when scripts are run
@@ -27,8 +28,6 @@ import warnings
 from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
-# determine whether to use colour output for CLI tool logging
-_USE_COLOUR = sys.stdout.isatty() and not os.environ.get('NO_COLOR')
 
 class LangchainLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
@@ -111,13 +110,8 @@ class LangchainLlmClient(LlmClient):
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
         executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
 
-        executor_created_text = "Created AgentExecutor (temperature = " + str(temperature) + ').'
-        if (_USE_COLOUR):
-            print()
-            print(f"\x1b[1;33m{executor_created_text}\x1b[0m")
-        else:
-            print()
-            print(executor_created_text)
+        print_to_console()
+        print_to_console('Created AgentExecutor (temperature = ' + str(temperature) + ').', color='yellow')
 
         return executor
     
@@ -175,11 +169,15 @@ class LangchainLlmClient(LlmClient):
         if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
             # If the Chroma persist directory is missing, create the vector DB now.
             # This ensures a persisted vector store is available for use.
+            print_to_console('No vector DB found. Creating new...', 'yellow')
             self.recreate_vector_db()
+            print_to_console('Vector DB created.', 'yellow')
         else:
             # Otherwise just load the existing vector DB
+            print_to_console('Existing vector DB found. Loading...', 'yellow')
             embedding = OpenAIEmbeddings()
             self._vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
+            print_to_console('Vector DB loaded.', 'yellow')
 
         return self._chat(messages, temperature)
 
