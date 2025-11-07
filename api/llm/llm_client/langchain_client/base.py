@@ -106,6 +106,8 @@ class LangchainLlmClient(LlmClient):
             input_variables=["input", "instructions", "history", "agent_scratchpad"]
         )
 
+        breakpoint()
+
         llm_chain = LLMChain(llm=llm, prompt=agent_prompt)
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
         executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
@@ -165,7 +167,17 @@ class LangchainLlmClient(LlmClient):
     # Use the Template Method Pattern to define code that should be
     # executed for all concrete instances of the base class 
     def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None):
-        """Publicly exposed method that ensures the vectordb is loaded"""
+        """
+        Publicly exposed method that ensures the vectordb is loaded,
+        then delegates control to the implememtations of _chat
+        in the concrete provider classes (Template Method Pattern)
+        """
+        new_message = messages[-1].get("content", "") if messages else ""
+        print_to_console()
+        print_to_console('Calling provider chat() method with message:', 'yellow')
+        print_to_console(new_message, 'cyan')
+        print_to_console()
+
         if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
             # If the Chroma persist directory is missing, create the vector DB now.
             # This ensures a persisted vector store is available for use.

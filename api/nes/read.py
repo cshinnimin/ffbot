@@ -211,7 +211,9 @@ def read_addresses_tool(arg_str: str) -> str:
     result, status = read_addresses(addresses)
     if status != 200:
         # propagate as exception for LangChain usage
-        raise RuntimeError(f"read_addresses failed: {result}")
+        #raise RuntimeError(f"read_addresses failed: {result}")
+        print_to_console('error = ' + result, 'red') # print error to console
+        return '{"error": "' + result +  '"}'
     
     print_to_console('result = ' + json.dumps(result)) # print result to console
     return json.dumps(result)

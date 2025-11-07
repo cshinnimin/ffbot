@@ -17,7 +17,7 @@ def create_app() -> Flask:
     provider = config["LLM_PROVIDER"].lower()
     client = create_client(config)
 
-    print_to_console(f"[LLM API] Initialized provider '{provider}' with model '{config.get('LLM_MODEL')}'", 'yellow')
+    print_to_console(f"LLM provider '{provider}' initialized with model '{config.get('LLM_MODEL')}'", 'yellow')
 
     @app.route("/llm/get-response", methods=["POST", "OPTIONS"])
     def get_response():
@@ -37,7 +37,7 @@ def create_app() -> Flask:
                 messages=conversation,
                 temperature=temperature,
             )
-            print_to_console(f"[LLM API] Provider '{provider}' returned response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}", 'yellow')
+            print_to_console(f"LLM provider '{provider}' returned response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}", 'yellow')
             return jsonify(response)
         except Exception as exc:  # Provider errors surface in a uniform shape
             status_code = 500
@@ -48,7 +48,7 @@ def create_app() -> Flask:
                     message = exc.response.json().get("error", {}).get("message", message)
                 except Exception:
                     message = exc.response.text or message
-            print_to_console(f"[LLM API] Error ({status_code}): {message}", 'yellow')
+            print_to_console(f"LLM provider error ({status_code}): {message}", 'red')
             return jsonify({"error": {"message": message}}), status_code
 
     return app
