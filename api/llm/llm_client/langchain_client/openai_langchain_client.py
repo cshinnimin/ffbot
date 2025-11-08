@@ -33,6 +33,8 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def _get_hints_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
         Retrieve top-k hint chunks from the hints vector DB and concatenate them.
+        Filter out any retrieved chunks that have a relevance score of less than
+        the defined threshold (lower score means "closer", "more similar").
         """
         docs: List[Document] = self._vectordb_hints.similarity_search_with_score(user_input, k=k)
         return "\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_HINTS])
@@ -40,6 +42,8 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def _get_documents_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
         Retrieve top-k document chunks from the documents vector DB and concatenate them.
+        Filter out any retrieved chunks that have a relevance score of less than
+        the defined threshold (lower score means "closer", "more similar").
         """
         docs: List[Document] = self._vectordb_documents.similarity_search_with_score(user_input, k=k)
         return "\n\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_DOCUMENTS])
@@ -47,6 +51,8 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def _get_addresses_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
         Retrieve top-k memory address chunks from the addresses vector DB and concatenate them.
+        Filter out any retrieved chunks that have a relevance score of less than
+        the defined threshold (lower score means "closer", "more similar").
         """
         docs: List[Document] = self._vectordb_addresses.similarity_search_with_score(user_input, k=k)
         return "\n\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_ADDRESSES])
