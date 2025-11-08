@@ -16,6 +16,9 @@ warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 _K_FOR_HINTS = 3
 _K_FOR_DOCUMENTS = 3
 _K_FOR_ADDRESSES = 30
+_SIMILARITY_FOR_HINTS = 0.4
+_SIMILARITY_FOR_DOCUMENTS = 0.4
+_SIMILARITY_FOR_ADDRESSES = 0.4
 
 class ReadAddressesInput(BaseModel):
     addresses: List[str] = Field(description="The RAM addresses we want the values for.")
@@ -31,22 +34,22 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         """
         Retrieve top-k hint chunks from the hints vector DB and concatenate them.
         """
-        docs: List[Document] = self._vectordb_hints.similarity_search(user_input, k=k)
-        return "\n".join([d.page_content for d in docs])
+        docs: List[Document] = self._vectordb_hints.similarity_search_with_score(user_input, k=k)
+        return "\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_HINTS])
     
     def _get_documents_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
         Retrieve top-k document chunks from the documents vector DB and concatenate them.
         """
-        docs: List[Document] = self._vectordb_documents.similarity_search(user_input, k=k)
-        return "\n\n".join([d.page_content for d in docs])
+        docs: List[Document] = self._vectordb_documents.similarity_search_with_score(user_input, k=k)
+        return "\n\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_DOCUMENTS])
     
     def _get_addresses_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
         Retrieve top-k memory address chunks from the addresses vector DB and concatenate them.
         """
-        docs: List[Document] = self._vectordb_addresses.similarity_search(user_input, k=k)
-        return "\n\n".join([d.page_content for d in docs])
+        docs: List[Document] = self._vectordb_addresses.similarity_search_with_score(user_input, k=k)
+        return "\n\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_ADDRESSES])
     
 
     def _make_tools(self) -> List[Any]:
@@ -99,6 +102,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         # (at data/training/langchain/initial-instructions.md) and the top-k chunks from
         # the hints document (at data/training/langchain/hints.md - every bullet becomes a chunk)
         instructions_text = self._initial_instructions + "\n" + hints_text + "\n" + documents_text
+        instructions_text += "\n\n#Memory Addresses of Interest\n\n" + addresses_text
 
         with get_openai_callback() as cb:
             result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": []})

@@ -6,9 +6,9 @@
 	- 0x000048
 * if outside: on land, in canoe or in ship?
 	- 0x000042
-* overworld x position
+* overworld x position (location)
 	- 0x000027
-* overworld y position
+* overworld y position (location)
 	- 0x000028
 * have lute?
 	- 0x006021
