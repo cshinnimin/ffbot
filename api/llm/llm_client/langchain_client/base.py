@@ -13,6 +13,7 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 from langchain.prompts import PromptTemplate
+from langchain.schema import Document
 
 from api.nes.read import read_addresses_tool
 from api.utils.console import print_to_console
@@ -177,6 +178,42 @@ class LangchainLlmClient(LlmClient):
 
         self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
         self._vectordb_addresses.add_texts(address_chunk_strings)
+
+
+    def _retrieve_from_vector_db(self, vectordb, user_input: str, k: int, similarity: float, space_chunks: bool) -> str:
+        """
+        Generic helper to query a vector DB and return concatenated chunk text.
+
+        Args:
+            vectordb: The vector DB instance (must implement similarity_search_with_score).
+            user_input: The query string.
+            k: Number of top-k results to retrieve.
+            similarity: The maximum allowed score (lower is more similar). Only chunks with
+                score <= similarity are returned.
+            space_chunks: If True, join chunks with a double newline ("\n\n"), otherwise
+                join with a single newline ("\n").
+
+        Returns:
+            The joined string of the selected chunk texts (empty string when none match).
+            Between 0 to k chunks will be returned depending on how many meet the similarity threshold.
+        """
+        # similarity_search_with_score returns List[Tuple[Document, float]]
+        chunks = vectordb.similarity_search_with_score(user_input, k=k)
+
+        selected_texts: List[str] = []
+        joiner = "\n\n" if space_chunks else "\n"
+
+        for chunk, score in chunks:
+            # Log the similarity score and a preview for all top-k chunks retrieved for debugging.
+            # Replace newlines with spaces so the console output stays on one line
+            preview = chunk.page_content.replace("\n", " ")[:60]
+            print_to_console(f"{score:.3f}: {preview}")
+            if score <= similarity:
+                # if the score is nearer than the specified similarity threshold,
+                # add it to selected_text so we can return it
+                selected_texts.append(chunk.page_content)
+
+        return joiner.join(selected_texts)
 
 
     # Use the Template Method Pattern to define code that should be

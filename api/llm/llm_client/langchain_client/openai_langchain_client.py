@@ -27,37 +27,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
 
-    def now_iso(self) -> str:
-        return datetime.utcnow().isoformat()
-
-    def _get_hints_from_vector_db(self, user_input: str, k: int = 6) -> str:
-        """
-        Retrieve top-k hint chunks from the hints vector DB and concatenate them.
-        Filter out any retrieved chunks that have a relevance score of less than
-        the defined threshold (lower score means "closer", "more similar").
-        """
-        docs: List[Document] = self._vectordb_hints.similarity_search_with_score(user_input, k=k)
-        return "\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_HINTS])
-    
-    def _get_documents_from_vector_db(self, user_input: str, k: int = 6) -> str:
-        """
-        Retrieve top-k document chunks from the documents vector DB and concatenate them.
-        Filter out any retrieved chunks that have a relevance score of less than
-        the defined threshold (lower score means "closer", "more similar").
-        """
-        docs: List[Document] = self._vectordb_documents.similarity_search_with_score(user_input, k=k)
-        return "\n\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_DOCUMENTS])
-    
-    def _get_addresses_from_vector_db(self, user_input: str, k: int = 6) -> str:
-        """
-        Retrieve top-k memory address chunks from the addresses vector DB and concatenate them.
-        Filter out any retrieved chunks that have a relevance score of less than
-        the defined threshold (lower score means "closer", "more similar").
-        """
-        docs: List[Document] = self._vectordb_addresses.similarity_search_with_score(user_input, k=k)
-        return "\n\n".join([d.page_content for d, score in docs if score <= _SIMILARITY_FOR_ADDRESSES])
-    
-
     def _make_tools(self) -> List[Any]:
         """
         Create the Tool objects for Langchain to use.
@@ -82,7 +51,13 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         # Search the documents vector DB for documents relevant to this message
         print_to_console('Searching vector DB for relevant documents...', 'yellow')
-        documents_text = self._get_documents_from_vector_db(new_message, _K_FOR_DOCUMENTS)
+        documents_text = self._retrieve_from_vector_db(
+            self._vectordb_documents,
+            new_message,
+            _K_FOR_DOCUMENTS,
+            _SIMILARITY_FOR_DOCUMENTS,
+            space_chunks=True,
+        )
 
         print_to_console()
         print_to_console('Documents Retrieved from Vector DB:', color='yellow')
@@ -90,7 +65,13 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         # Search the hints vector DB for hints relevant to this message
         print_to_console('Searching vector DB for relevant hints...', 'yellow')
-        hints_text = self._get_hints_from_vector_db(new_message, _K_FOR_HINTS)
+        hints_text = self._retrieve_from_vector_db(
+            self._vectordb_hints,
+            new_message,
+            _K_FOR_HINTS,
+            _SIMILARITY_FOR_HINTS,
+            space_chunks=False,
+        )
 
         print_to_console()
         print_to_console('Hints Retrieved from Vector DB:', color='yellow')
@@ -98,7 +79,13 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         # Search the addresses vector DB for memory addresses relevant to this message
         print_to_console('Searching vector DB for relevant memory addresses...', 'yellow')
-        addresses_text = self._get_addresses_from_vector_db(new_message, _K_FOR_ADDRESSES)
+        addresses_text = self._retrieve_from_vector_db(
+            self._vectordb_addresses,
+            new_message,
+            _K_FOR_ADDRESSES,
+            _SIMILARITY_FOR_ADDRESSES,
+            space_chunks=True,
+        )
 
         print_to_console()
         print_to_console('Addresses Retrieved from Vector DB:', color='yellow')
