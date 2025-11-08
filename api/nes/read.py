@@ -206,7 +206,9 @@ def read_addresses_tool(arg_str: str) -> str:
     try:
         addresses = json.loads(arg_str)
     except Exception as e:
-        raise RuntimeError(f"Failed to parse tool input JSON: {e}")
+        #raise RuntimeError(f"Failed to parse tool input JSON: {e}")
+        print_to_console(f'error = {e}', 'red') # print error to console
+        return '{"error": "' + result +  '"}'
 
     result, status = read_addresses(addresses)
     if status != 200:
