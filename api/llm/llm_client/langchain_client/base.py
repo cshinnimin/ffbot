@@ -12,6 +12,7 @@ from langchain.vectorstores import Chroma
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
+from langchain.prompts import PromptTemplate
 
 from api.nes.read import read_addresses_tool
 from api.utils.console import print_to_console
@@ -106,8 +107,6 @@ class LangchainLlmClient(LlmClient):
             input_variables=["input", "instructions", "history", "agent_scratchpad"]
         )
 
-        breakpoint()
-
         llm_chain = LLMChain(llm=llm, prompt=agent_prompt)
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
         executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
@@ -118,11 +117,11 @@ class LangchainLlmClient(LlmClient):
         return executor
     
 
-    # Recreate the vector database used for the training instructions in data/training/langchain
+    # Recreate the 3 vector databases used for the Langchain prompt template
     # This is a publicly exposed method that can be invoked by external scripts or consumers
     def recreate_vector_db(self):
-        # clear the chroma persist directory if it exists, so that
-        # we can reload the vector DB from scratch
+        # clear the chroma persist directories if they exist, so that
+        # we can reload the vector DBs from scratch
         if os.path.exists(CHROMA_PERSIST_DIRECTORY):
             shutil.rmtree(CHROMA_PERSIST_DIRECTORY)
 
@@ -139,29 +138,45 @@ class LangchainLlmClient(LlmClient):
         # UnstructuredMarkdownLoader.load returns a List[Document]
         # Convert each full document into a chunk since this is how these were designed
         documents = loader.load()
-        chunk_strings = [doc.page_content for doc in documents]
+        document_chunk_strings = [doc.page_content for doc in documents]
 
         # now load the contents of the hints.md document, this document
         # is designed to be split by newline as each line will have a
         # separate context unrelated to any of the others
 
-        #loader = UnstructuredMarkdownLoader(f"{TRAINING_FOLDER_PATH}/hints.md")
         loader = TextLoader(f"{TRAINING_FOLDER_PATH}/hints.md")
-        documents = loader.load()
-        hints_text = "\n".join([doc.page_content for doc in documents])
+        hints = loader.load()
+        hints_text = "\n".join([hint.page_content for hint in hints])
 
         # chunk_size=1 / chunk_overlap=0 ensures strict splitting on each newline
         # without these parameters because by default Langchain groups text into 
         # chunks, not literal splits by the separator
         # CharacterTextSplitter.split_test returns a List[str]
         splitter = CharacterTextSplitter(separator="\n", chunk_size=1, chunk_overlap=0)
-        chunk_strings = chunk_strings + splitter.split_text(hints_text)
+        hint_chunk_strings = splitter.split_text(hints_text)
+
+        loader = TextLoader(f"{TRAINING_FOLDER_PATH}/memory-addresses.md")
+        addresses = loader.load()
+        addresses_text = "\n".join([address.page_content for address in addresses])
+
+        # chunk_size=1 / chunk_overlap=0 ensures strict splitting on each newline
+        # without these parameters because by default Langchain groups text into 
+        # chunks, not literal splits by the separator
+        # CharacterTextSplitter.split_test returns a List[str]
+        splitter = CharacterTextSplitter(separator="*", chunk_size=1, chunk_overlap=0)
+        address_chunk_strings = splitter.split_text(addresses_text)
 
         # create a Chroma DB vector store and add chunks to it as lists of strings
         embedding = OpenAIEmbeddings()
         # store the Chroma vector DB on the instance so other methods can access it
-        self._vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
-        self._vectordb.add_texts(chunk_strings)
+        self._vectordb_documents = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/documents', embedding_function=embedding)
+        self._vectordb_documents.add_texts(document_chunk_strings)
+
+        self._vectordb_hints = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/hints', embedding_function=embedding)
+        self._vectordb_hints.add_texts(hint_chunk_strings)
+
+        self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
+        self._vectordb_addresses.add_texts(address_chunk_strings)
 
 
     # Use the Template Method Pattern to define code that should be
@@ -181,15 +196,17 @@ class LangchainLlmClient(LlmClient):
         if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
             # If the Chroma persist directory is missing, create the vector DB now.
             # This ensures a persisted vector store is available for use.
-            print_to_console('No vector DB found. Creating new...', 'yellow')
+            print_to_console('No vector databases found. Creating new...', 'yellow')
             self.recreate_vector_db()
-            print_to_console('Vector DB created.', 'yellow')
+            print_to_console('Vector databases created.', 'yellow')
         else:
             # Otherwise just load the existing vector DB
-            print_to_console('Existing vector DB found. Loading...', 'yellow')
+            print_to_console('Existing vector databases found. Loading...', 'yellow')
             embedding = OpenAIEmbeddings()
-            self._vectordb = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY, embedding_function=embedding)
-            print_to_console('Vector DB loaded.', 'yellow')
+            self._vectordb_documents = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/documents', embedding_function=embedding)
+            self._vectordb_hints = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/hints', embedding_function=embedding)
+            self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
+            print_to_console('Vector databases loaded.', 'yellow')
 
         return self._chat(messages, temperature)
 

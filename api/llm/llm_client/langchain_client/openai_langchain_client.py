@@ -13,6 +13,9 @@ import warnings
 from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
+_K_FOR_HINTS = 3
+_K_FOR_DOCUMENTS = 3
+_K_FOR_ADDRESSES = 30
 
 class ReadAddressesInput(BaseModel):
     addresses: List[str] = Field(description="The RAM addresses we want the values for.")
@@ -24,14 +27,26 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def now_iso(self) -> str:
         return datetime.utcnow().isoformat()
 
-    def _retrieve_instructions_from_vector_db(self, user_input: str, k: int = 6) -> str:
+    def _get_hints_from_vector_db(self, user_input: str, k: int = 6) -> str:
         """
-        Retrieve top-k instruction chunks from the vector DB and concatenate them.
-        Always include initial instructions from data/training/langchain/initial-instructions.md
-        in every message that goes to the LLM, followed by the top-k instruction chunks.
+        Retrieve top-k hint chunks from the hints vector DB and concatenate them.
         """
-        docs: List[Document] = self._vectordb.similarity_search(user_input, k=k)
-        return self._initial_instructions + "\n---\n".join([d.page_content for d in docs])
+        docs: List[Document] = self._vectordb_hints.similarity_search(user_input, k=k)
+        return "\n".join([d.page_content for d in docs])
+    
+    def _get_documents_from_vector_db(self, user_input: str, k: int = 6) -> str:
+        """
+        Retrieve top-k document chunks from the documents vector DB and concatenate them.
+        """
+        docs: List[Document] = self._vectordb_documents.similarity_search(user_input, k=k)
+        return "\n\n".join([d.page_content for d in docs])
+    
+    def _get_addresses_from_vector_db(self, user_input: str, k: int = 6) -> str:
+        """
+        Retrieve top-k memory address chunks from the addresses vector DB and concatenate them.
+        """
+        docs: List[Document] = self._vectordb_addresses.similarity_search(user_input, k=k)
+        return "\n\n".join([d.page_content for d in docs])
     
 
     def _make_tools(self) -> List[Any]:
@@ -56,17 +71,38 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
         new_message = messages[-1].get("content", "") if messages else ""
 
-        # Search the vector DB for instructions relevant to this message
-        print_to_console('Searching vector DB for relevant instructions...', 'yellow')
-        docs: List[Document] = self._vectordb.similarity_search(new_message, k=6)
-        instructions_text = self._initial_instructions + "\n---\n".join([d.page_content for d in docs])
+        # Search the documents vector DB for documents relevant to this message
+        print_to_console('Searching vector DB for relevant documents...', 'yellow')
+        documents_text = self._get_documents_from_vector_db(new_message, _K_FOR_DOCUMENTS)
 
         print_to_console()
-        print_to_console('Instructions Retrieved from Vector DB:', color='yellow')
-        print_to_console(instructions_text)
+        print_to_console('Documents Retrieved from Vector DB:', color='yellow')
+        print_to_console(documents_text)
+
+        # Search the hints vector DB for hints relevant to this message
+        print_to_console('Searching vector DB for relevant hints...', 'yellow')
+        hints_text = self._get_hints_from_vector_db(new_message, _K_FOR_HINTS)
+
+        print_to_console()
+        print_to_console('Hints Retrieved from Vector DB:', color='yellow')
+        print_to_console(hints_text)
+
+        # Search the addresses vector DB for memory addresses relevant to this message
+        print_to_console('Searching vector DB for relevant memory addresses...', 'yellow')
+        addresses_text = self._get_addresses_from_vector_db(new_message, _K_FOR_ADDRESSES)
+
+        print_to_console()
+        print_to_console('Addresses Retrieved from Vector DB:', color='yellow')
+        print_to_console(addresses_text)
+
+        # create instructions text from concatenation of entire initial instructions document
+        # (at data/training/langchain/initial-instructions.md) and the top-k chunks from
+        # the hints document (at data/training/langchain/hints.md - every bullet becomes a chunk)
+        instructions_text = self._initial_instructions + "\n" + hints_text + "\n" + documents_text
 
         with get_openai_callback() as cb:
             result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": []})
+            #result = self._executor.run({"input": new_message, "instructions": instructions_text, "documents": documents_text, "addresses": addresses_text})
 
             total_string = f"Total Tokens: {cb.total_tokens}"
             prompt_string = f"Prompt Tokens: {cb.prompt_tokens}"

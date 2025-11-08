@@ -14,6 +14,7 @@ or if an error occurs while creating the DB.
 """
 import os
 import sys
+import shutil
 from typing import Dict, Any
 from pathlib import Path
 
@@ -23,6 +24,9 @@ sys.path.insert(0, str(API_DIR))
 
 from load_env import load_env
 load_env()
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+CHROMA_PERSIST_DIRECTORY = str(PROJECT_ROOT / 'data' / 'chroma')
 
 # Import the concrete client after attempting to load .env so module-level code
 # can pick up environment variables if needed.
@@ -45,6 +49,9 @@ def main() -> None:
     }
 
     try:
+        if os.path.exists(CHROMA_PERSIST_DIRECTORY):
+            shutil.rmtree(CHROMA_PERSIST_DIRECTORY)
+
         client = OpenAILangchainLlmClient(config)
         # Explicitly recreate the vector DB
         client.recreate_vector_db()
