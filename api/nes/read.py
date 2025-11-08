@@ -206,18 +206,21 @@ def read_addresses_tool(arg_str: str) -> str:
     try:
         addresses = json.loads(arg_str)
     except Exception as e:
-        #raise RuntimeError(f"Failed to parse tool input JSON: {e}")
         print_to_console(f'error = {e}', 'red') # print error to console
-        return '{"error": "' + result +  '"}'
+        return '{"error": "' + str(e) +  '"}'
 
     result, status = read_addresses(addresses)
     if status != 200:
         # propagate as exception for LangChain usage
-        #raise RuntimeError(f"read_addresses failed: {result}")
         print_to_console('error = ' + result, 'red') # print error to console
         return '{"error": "' + result +  '"}'
     
-    print_to_console('result = ' + json.dumps(result)) # print result to console
-    return json.dumps(result)
+    try:
+        print_to_console('result = ' + json.dumps(result)) # print result to console
+        return json.dumps(result)
+    except Exception as e:
+        # print exception to console in red and return a JSON error string
+        print_to_console('error = ' + str(e), 'red') # print error to console
+        return '{"error": "' + str(e) +  '"}'
 
 __all__ = ["read_addresses", "read_addresses_tool"]
