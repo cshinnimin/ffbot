@@ -92,7 +92,7 @@ class LangchainLlmClient(LlmClient):
         
         # Use the provided temperature if set, otherwise default to 1
         llm_temperature = temperature if temperature is not None else 1
-        llm = OpenAI(temperature=llm_temperature)
+        llm = OpenAI(model_name="gpt-4o-mini", temperature=llm_temperature)
 
         tools = self._make_tools()
         # Build a prompt that includes instructions and the conversation history
@@ -112,8 +112,9 @@ class LangchainLlmClient(LlmClient):
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
         executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
 
+        
         print_to_console()
-        print_to_console('Created AgentExecutor (temperature = ' + str(temperature) + ').', color='yellow')
+        print_to_console('Created AgentExecutor (model = ' + getattr(llm, "model_name", None) + ', temperature = ' + str(llm_temperature) + ').', color='yellow')
 
         return executor
     
