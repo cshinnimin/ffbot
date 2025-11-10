@@ -69,8 +69,7 @@ class LangchainLlmClient(LlmClient):
         self._initial_instructions = "\n".join([doc.page_content for doc in documents])
 
         # create the Tool objects and AgentExecutor
-        temperature = self.config.get("LLM_TEMPERATURE") 
-        self._executor = self._create_executor(temperature=temperature)
+        self._executor = self._create_executor()
         self._tools = self._make_tools()
 
 
@@ -103,15 +102,15 @@ class LangchainLlmClient(LlmClient):
         return tools
     
 
-    def _create_executor(self, temperature: Optional[float] = None) -> AgentExecutor:
+    def _create_executor(self) -> AgentExecutor:
         """
         Create an AgentExecutor for a session that accepts {instructions} and {history} plus {input}.
         We include the full in-session history via the {history} variable so the agent sees conversation context.
         """
-        
-        # Use the provided temperature if set, otherwise default to 1
-        llm_temperature = temperature if temperature is not None else 1
-        llm = SafeChatOpenAI(model_name="gpt-4o", temperature=llm_temperature)
+
+        temperature = self.config.get("LLM_TEMPERATURE")
+        model_name = self.config.get("LLM_MODEL")
+        llm = SafeChatOpenAI(model_name=model_name, temperature=temperature)
 
         tools = self._make_tools()
         # Build a prompt that includes instructions and the conversation history
@@ -153,7 +152,7 @@ class LangchainLlmClient(LlmClient):
         executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, stop=None, handle_parsing_errors=True)
 
         print_to_console()
-        print_to_console('Created AgentExecutor (model = ' + getattr(llm, "model_name", None) + ', temperature = ' + str(llm_temperature) + ').', color='yellow')
+        print_to_console('Created AgentExecutor (model = ' + getattr(llm, "model_name", None) + ', temperature = ' + str(temperature) + ').', color='yellow')
 
         return executor
     

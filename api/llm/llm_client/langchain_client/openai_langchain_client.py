@@ -35,7 +35,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         # Subclasses can override this if they need different tools.
         return super()._make_tools()
 
-    def _create_executor(self, temperature: Optional[float] = None) -> Any:
+    def _create_executor(self) -> Any:
         """
         Create an AgentExecutor for a session that accepts {instructions} and {history} plus {input}.
         We include the full in-session history via the {history} variable so the agent sees conversation context.
@@ -43,7 +43,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         
         # The executor construction is provided by the base class. Subclasses
         # may override this if they need custom behaviour.
-        return super()._create_executor(temperature=temperature)
+        return super()._create_executor()
     
 
     def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
