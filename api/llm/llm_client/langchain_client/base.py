@@ -9,11 +9,9 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
 
 from api.nes.read import read_addresses_tool
 from api.utils.console import print_to_console
@@ -30,6 +28,27 @@ import warnings
 from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
+class SafeChatOpenAI(ChatOpenAI):
+    """
+    Subclass that ensures a 'stop' parameter is never forwarded to the provider.
+    Some newer OpenAI models (such as gpt-5) reject a 'stop' parameter.
+    """
+    def __call__(self, *args, **kwargs):
+        kwargs.pop("stop", None)
+        return super().__call__(*args, **kwargs)
+
+    async def __acall__(self, *args, **kwargs):
+        kwargs.pop("stop", None)
+        return await super().__acall__(*args, **kwargs)
+
+    # Override generate/agenerate too—some LangChain versions call these directly.
+    def generate(self, messages, stop=None, **kwargs):
+        # ensure stop is never forwarded
+        return super().generate(messages, stop=None, **kwargs)
+
+    async def agenerate(self, messages, stop=None, **kwargs):
+        return await super().agenerate(messages, stop=None, **kwargs)
+    
 
 class LangchainLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
@@ -92,13 +111,25 @@ class LangchainLlmClient(LlmClient):
         
         # Use the provided temperature if set, otherwise default to 1
         llm_temperature = temperature if temperature is not None else 1
-        llm = OpenAI(model_name="gpt-4o-mini", temperature=llm_temperature)
+        llm = SafeChatOpenAI(model_name="gpt-4o", temperature=llm_temperature)
 
         tools = self._make_tools()
         # Build a prompt that includes instructions and the conversation history
         prefix = (
             "OPERATIONAL INSTRUCTIONS (follow these exactly):\n{instructions}\n\n"
             "CONVERSATION HISTORY (most recent last):\n{history}\n\n"
+            "FORMAT RULES (follow exactly):\n"
+            "1) You must produce exactly ONE of the following:\n"
+            "   - An Action block describing the tool to call, in the exact form:\n"
+            "       Action: <tool_name>\n"
+            "       Action Input: <JSON list or JSON object>\n"
+            "     (and nothing else besides brief thought lines)\n"
+            "   OR\n"
+            "   - A Final Answer line only, on its own line, starting with:\n"
+            "       Final Answer: <your answer>\n"
+            "     (if you provide a Final Answer, do NOT include any Action block)\n"
+            "2) If both appear, the grader will treat the output as invalid.\n"
+            "3) Keep tool usage minimal and only call a tool when necessary.\n\n"
         )
         suffix = "\nUser Input: {input}\n{agent_scratchpad}"
         agent_prompt = ZeroShotAgent.create_prompt(
@@ -109,10 +140,18 @@ class LangchainLlmClient(LlmClient):
         )
 
         llm_chain = LLMChain(llm=llm, prompt=agent_prompt)
-        agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
-        executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
 
-        
+        # A zero-shot agent is an LLM-based agent designed to take actions or solve tasks 
+        # without being given any task-specific examples. Instead it relies on a clear
+        # instruction, the model's pretraining knowledge, and descriptions of available
+        # tools/actions to decide what to do. When ZeroShotAgent is used, it builds a prompt
+        # (using the llm_chain you give it) that tells the LLM what it is, what tools exist,
+        # and the exact output format to use. It does not include example input→action pairs 
+        # (that’s what makes it “zero-shot”); instead it relies on clear instructions and tool
+        # descriptions.
+        agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
+        executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, stop=None, handle_parsing_errors=True)
+
         print_to_console()
         print_to_console('Created AgentExecutor (model = ' + getattr(llm, "model_name", None) + ', temperature = ' + str(llm_temperature) + ').', color='yellow')
 

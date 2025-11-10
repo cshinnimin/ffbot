@@ -114,4 +114,4 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             print_to_console(completion_string, color='yellow')
             print_to_console(cost_string, color='yellow')
 
-        return result
+        return '{"answer": "' + result + '"}'
