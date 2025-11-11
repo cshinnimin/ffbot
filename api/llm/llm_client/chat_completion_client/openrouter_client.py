@@ -18,7 +18,7 @@ class OpenRouterChatCompletionLlmClient(ChatCompletionLlmClient):
             "model": model,
             "messages": messages,
             "stream": False,
-            "temperature": self.config.get("LLM_TEMPERATURE")
+            "temperature": self.config.get("LLM_TEMPERATURE", 1)
         }
 
         data = self._post(url, headers, payload, timeout=60)

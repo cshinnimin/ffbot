@@ -19,10 +19,10 @@ class OllamaChatCompletionLlmClient(ChatCompletionLlmClient):
             "messages": messages,
             "stream": False,
             "options": {
-                "temperature": self.config.get("LLM_TEMPERATURE"),
+                "temperature": self.config.get("LLM_TEMPERATURE", 1),
             },
             "keep_alive": keep_alive,
-            "temperature": self.config.get("LLM_TEMPERATURE")
+            "temperature": self.config.get("LLM_TEMPERATURE", 1)
         }
 
         data = self._post(url, headers, payload, timeout=60)

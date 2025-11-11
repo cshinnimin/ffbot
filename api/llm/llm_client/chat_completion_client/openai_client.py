@@ -19,8 +19,7 @@ class OpenAIChatCompletionLlmClient(ChatCompletionLlmClient):
             "model": model,
             "messages": messages,
             "stream": False,
-            # Always use configured temperature from self.config / env
-            "temperature": self.config.get("LLM_TEMPERATURE")
+            "temperature": self.config.get("LLM_TEMPERATURE", 1)
         }
 
         data = self._post(url, headers, payload, timeout=60)
