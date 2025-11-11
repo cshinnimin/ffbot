@@ -13,7 +13,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 
-from api.nes.read import read_addresses_tool
+from api.nes.read import read_addresses, read_addresses_tool
+from api.nes.write import write_addresses, write_addresses_tool
 from api.utils.console import print_to_console
 
 # resolve paths relative to the repository root so the code works
@@ -89,13 +90,26 @@ class LangchainLlmClient(LlmClient):
                         in hex format with six characters following the '0x'. Example:
                         ["0x00001C", "0x006110"]
 
-                    Output 1: `Dict[str,str] result`: The key is the memory address requested and the value 
+                    Output: `Dict[str,str] result`: The key is the memory address requested and the value 
                         is its meaningful, human readable value. Example:
                         {{"0x00001C": "in battle", "0x006110": "25"}}
 
-                    Output 2: `int status`: The HTTP code for the response.
+                """
+            ),
+            Tool(
+                name="write_addresses",
+                func=write_addresses_tool,
+                description="""
+                    Writes values to dynamic RAM addresses. Accepts a JSON string (provided by LLM)
+	                and returns a JSON string result (expected by the LLM).
 
-                    Returns (result, status)
+                    Input: `Dict[str,str] addresses`: A map whose key is the RAM addresses 
+                        to update and whose value is the new value to update to. 
+                        Values must always be integers. Example:
+	                    '[{{"0x006BE4": 50}}, {{"0x006BE5": 0}}]'
+
+                    Output: `str result`: A string confirming a file has been written. Example:
+                        'execute.lua written successfully'
                 """
             )
         ]
@@ -107,9 +121,14 @@ class LangchainLlmClient(LlmClient):
         Create an AgentExecutor for a session that accepts {instructions} and {history} plus {input}.
         We include the full in-session history via the {history} variable so the agent sees conversation context.
         """
-
-        temperature = self.config.get("LLM_TEMPERATURE")
         model_name = self.config.get("LLM_MODEL")
+        temperature = self.config.get("LLM_TEMPERATURE", 1)
+        max_attempts = self.config.get("LLM_MAX_ATTEMPTS", 5)
+
+        # Use a SafeChatOpenAI to specify the LLM. This is a custom wrapper
+        # class that wraps OpenAI's ChatOpenAI() and provides an override
+        # to ensure that a `stop` parameter is never forwarded to the provider
+        # since newer models like gpt-5 do not support this parameter
         llm = SafeChatOpenAI(model_name=model_name, temperature=temperature)
 
         tools = self._make_tools()
@@ -149,7 +168,7 @@ class LangchainLlmClient(LlmClient):
         # (that’s what makes it “zero-shot”); instead it relies on clear instructions and tool
         # descriptions.
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
-        executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, stop=None, handle_parsing_errors=True)
+        executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, stop=None, handle_parsing_errors=True, max_iterations=max_attempts)
 
         print_to_console()
         print_to_console('Created AgentExecutor (model = ' + getattr(llm, "model_name", None) + ', temperature = ' + str(temperature) + ').', color='yellow')

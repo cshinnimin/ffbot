@@ -10,6 +10,10 @@ def write_lua_script(lua_script: str):
     """
     if not lua_script:
         return "Missing file content", 400
+    
+    print()
+    print(lua_script)
+    print()
 
     try:
         with open(FILENAME, 'w') as f:

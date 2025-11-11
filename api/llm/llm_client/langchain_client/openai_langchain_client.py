@@ -99,7 +99,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         with get_openai_callback() as cb:
             result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": []})
-            #result = self._executor.run({"input": new_message, "instructions": instructions_text, "documents": documents_text, "addresses": addresses_text})
 
             total_string = f"Total Tokens: {cb.total_tokens}"
             prompt_string = f"Prompt Tokens: {cb.prompt_tokens}"

@@ -24,7 +24,7 @@ const CORRECTION_MAP: Record<CorrectionType, string> = {
 export function useTraining() {
     const { llmMessagesRef, addLlmMessage } = useLlmMessages();
 
-    const MAX_ATTEMPTS = Number((import.meta as any).env?.VITE_TRAINING_MAX_ATTEMPTS || '5');
+    const MAX_ATTEMPTS = Number((import.meta as any).env?.LLM_MAX_ATTEMPTS || '5');
     let trainingAttempts = 0;
 
     /**

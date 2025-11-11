@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       // environment variables defined in the root project folder .env file where we are 
       // consolidating all environment variables for the project
       'import.meta.env.VITE_DEBUG_MODE': JSON.stringify(env.VITE_DEBUG_MODE),
-      'import.meta.env.VITE_TRAINING_MAX_ATTEMPTS': JSON.stringify(env.VITE_TRAINING_MAX_ATTEMPTS),
+      'import.meta.env.LLM_MAX_ATTEMPTS': JSON.stringify(env.LLM_MAX_ATTEMPTS),
       // Expose backend ports to the browser without requiring the VITE_ prefix in .env
       // (to avoid redundancy since these values are also needed by backend parts of the project)
       // Ports are safe to expose (not secrets) and will be injected at build/dev time
