@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from .base import LangchainLlmClient
 from api.utils.console import print_to_console
+from api.utils.math import safe_int
 from langchain.schema import Document
 from langchain_community.callbacks import get_openai_callback
 
@@ -39,12 +40,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
 
-    # Private helper to safely coerce values to integers
-    def _safe_int(self, v: Any) -> int:
-        try:
-            return int(v) if v is not None else 0
-        except Exception:
-            return 0
+    # Legacy: previously had a private _safe_int helper. Use shared `safe_int`.
 
     def _make_tools(self) -> List[Any]:
         """
@@ -124,9 +120,9 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             elapsed_time = end_time - start_time
 
             # Extract token counts (use safe conversion)
-            prompt_count = self._safe_int(getattr(cb, 'prompt_tokens', None))
-            completion_count = self._safe_int(getattr(cb, 'completion_tokens', None))
-            cached_count = self._safe_int(getattr(cb, 'prompt_tokens_cached', None))
+            prompt_count = safe_int(getattr(cb, 'prompt_tokens', None))
+            completion_count = safe_int(getattr(cb, 'completion_tokens', None))
+            cached_count = safe_int(getattr(cb, 'prompt_tokens_cached', None))
 
             # Extract and normalize cost
             try:

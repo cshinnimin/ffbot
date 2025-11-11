@@ -7,6 +7,7 @@ import threading
 import time
 
 from api.utils.console import print_to_console
+from api.utils.math import safe_int
 
 # Module-level cumulative token counters (persist for lifetime of process)
 # They are protected by _cumulative_lock when updated.
@@ -21,13 +22,6 @@ _cumulative_cached_tokens = 0
 class ChatCompletionLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-
-    # Private helper to safely coerce values to integers
-    def _safe_int(self, v: Any) -> int:
-        try:
-            return int(v) if v is not None else 0
-        except Exception:
-            return 0
 
     # Helper method for sending the payload and printing information about the request to the console
     # A leading underscore in the name signals (by convention) the method is internal / protected
@@ -50,10 +44,10 @@ class ChatCompletionLlmClient(LlmClient):
 
         # Step 4 - Get token usage from response, if present
         usage = data.get('usage') if isinstance(data, dict) else {}
-        prompt_count = self._safe_int(usage.get('prompt_tokens'))
-        completion_count = self._safe_int(usage.get('completion_tokens'))
+        prompt_count = safe_int(usage.get('prompt_tokens'))
+        completion_count = safe_int(usage.get('completion_tokens'))
         prompt_token_details = usage.get('prompt_tokens_details') if isinstance(usage, dict) else {}
-        cached_count = self._safe_int(prompt_token_details.get('cached_tokens') if isinstance(prompt_token_details, dict) else None)
+        cached_count = safe_int(prompt_token_details.get('cached_tokens') if isinstance(prompt_token_details, dict) else None)
 
         # Step 5 - Update module-level cumulative counters in a thread-safe way
         global _cumulative_prompt_tokens, _cumulative_completion_tokens, _cumulative_cached_tokens, _cumulative_api_seconds
