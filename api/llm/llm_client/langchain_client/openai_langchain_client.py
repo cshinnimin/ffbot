@@ -112,7 +112,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         instructions_text += "\n\n#Memory Addresses of Interest\n\n" + addresses_text
 
         with get_openai_callback() as cb:
-            result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": []})
+            result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": messages})
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
 
@@ -159,4 +159,5 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             print_to_console(cost_string, color='yellow')
             print_to_console(time_string, color='yellow')
 
-        return '{"answer": "' + result + '"}'
+        # return answer in JSON format expected by the front end
+        return '{"answer": "' + result.replace('"', '\\"') + '"}'
