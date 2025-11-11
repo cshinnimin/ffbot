@@ -1,8 +1,15 @@
 # Overworld Landmarks
 
-If tyou need context on where the user is located on the overworld map, consult this table. The table maps tile coordinates to each landmark.
+If you have the users overworld location (tile coordinates) and need context on nearby landmarks, consult this table. This table describes where overworld landmarks exist in terms of their tile coordinates. The entire overworld map is 256 x 256 tiles; use this overall size when reasoning about proximity of locations to one another.
 
-## Overworld Landmark by Coordinate
+This instruction is useful for any question about the current location of the party. For example, if asked:
+
+    - Am I near <some_location>?
+    - Where am I?
+    - What is nearby/close?
+    - I'm lost.
+
+## Overworld Landmark by Coordinate (X, Y, Landmark)
 
 144,155 Cornelia
 144,154 Cornelia

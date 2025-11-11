@@ -1,6 +1,7 @@
-from .config import get_config
 import json
+from .config import get_config
 from typing import Tuple, Dict, Any, List
+from langchain.tools import tool
 
 """
 Read endpoint implementation.
@@ -16,6 +17,8 @@ _config = get_config()
 _RAMDISK_DIR = _config['RAMDISK_DIR']
 _RAM_CATALOG_PATH = _RAMDISK_DIR + 'ram_catalog.json'
 _RAM_CONTENTS_PATH = _RAMDISK_DIR + 'ram_contents.json'
+
+from api.utils.console import print_to_console
 
 def _load_ram_catalog() -> Dict[str, Any]:
     """
@@ -100,13 +103,22 @@ def _confirm_imp(address: str, ram_contents: Dict[str, str]) -> str:
         return ""
     return "Imp"
 
-
 def read_addresses(addresses: List[str]) -> Tuple[Dict[str, Any], int]:
     """
-    Read RAM values for the given addresses list and translate them into values meaningful
-    to a human or an LLM.
-    
-    Returns (result, status). On success result is {"addresses": {...}}.
+    Reads dynamic RAM values for the given addresses list and translates them into
+    values meaningful to a human or an LLM.
+
+    Input: `List[str] addresses`: The requested RAM addresses. Must always be
+        in hex format with six characters following the '0x'. Example:
+        ["0x00001C", "0x006110"]
+
+    Output 1: `Dict[str,str] result`: The key is the memory address requested and the value 
+        is its meaningful, human readable value. Example:
+        {{"0x00001C": "in battle", "0x006110": "25"}}
+
+    Output 2: `int status`: The HTTP code for the response.
+
+    Returns (result, status)
     """
 
     # Validate input type
@@ -176,4 +188,39 @@ def read_addresses(addresses: List[str]) -> Tuple[Dict[str, Any], int]:
 
     return ({"addresses": values}, 200)
 
-__all__ = ["read_addresses"]
+# Provide a LangChain tool wrapper while keeping the core read_addresses function plain for Flask.
+@tool
+def read_addresses_tool(arg_str: str) -> str:
+    """
+    LangChain tool wrapper around `read_addresses` that accepts a JSON string
+    (as provided by the LLM) and returns a JSON string result (expected by the LLM).
+
+    Input example: '["0x006BE4","0x006BE5"]'
+    Output example: '{"addresses": {"0x006BE4": "Imp", "0x006BE5": ""}}'
+    """
+    print_to_console()
+    print_to_console('Calling read_addresses tool:', color='yellow')
+    print_to_console('arg_str = ' + arg_str)
+
+    # Parse addresses from the LLM-provided JSON string
+    try:
+        addresses = json.loads(arg_str)
+    except Exception as e:
+        print_to_console(f'error = {e}', 'red') # print error to console
+        return '{"error": "' + str(e) +  '"}'
+
+    result, status = read_addresses(addresses)
+    if status != 200:
+        # propagate as exception for LangChain usage
+        print_to_console('error = ' + result, 'red') # print error to console
+        return '{"error": "' + result +  '"}'
+    
+    try:
+        print_to_console('result = ' + json.dumps(result)) # print result to console
+        return json.dumps(result)
+    except Exception as e:
+        # print exception to console in red and return a JSON error string
+        print_to_console('error = ' + str(e), 'red') # print error to console
+        return '{"error": "' + str(e) +  '"}'
+
+__all__ = ["read_addresses", "read_addresses_tool"]

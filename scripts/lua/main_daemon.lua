@@ -18,7 +18,6 @@ while true do
         package.path = package.path .. ";" .. LUA_PACKAGE_DIR .. "?.lua"
         local JSON = require("lunajson") -- load lunajson for JSON parsing
 
-
         local ram_catalog_file = io.open(RAMDISK_DIR .. "ram_catalog.json", "r")
         local RAM_CATALOG = JSON.decode(ram_catalog_file:read("*all"))
         -- note keys are NOT sorted in order by their hex values

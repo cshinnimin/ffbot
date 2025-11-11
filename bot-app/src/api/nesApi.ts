@@ -1,12 +1,6 @@
 // Utility for communicating with the NES emulator RAM
 import { RamContentsError, FlaskRamWriteError } from "../types/Error";
 
-/**
- * getRamValuesMap now delegates all RAM/catalog translation logic to the backend
- * `/nes/read` endpoint. The backend returns JSON { addresses: { <addr>: <value>, ... } }
- * so this function simply POSTs the addresses and returns the mapping or throws
- * a RamContentsError on failure.
- */
 export async function getRamValuesMap(addresses: string[]) {
   const port = import.meta.env.NES_API_PORT || '5000';
   const url = `http://localhost:${port}/nes/read`;

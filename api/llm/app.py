@@ -5,6 +5,7 @@ import os
 import requests
 from .config import get_config
 from .llm_client import create_client
+from api.utils.console import print_to_console
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -16,21 +17,7 @@ def create_app() -> Flask:
     provider = config["LLM_PROVIDER"].lower()
     client = create_client(config)
 
-    print(f"[LLM API] Initialized provider '{provider}' with model '{config.get('LLM_MODEL')}'")
-
-    @app.route("/llm/config", methods=["GET", "OPTIONS"])
-    def get_public_config():
-        if request.method == "OPTIONS":
-            return ("", 200)
-        # Return only non-sensitive config for the React app
-        public_config = {
-            "provider": provider,
-            "model": config.get("LLM_MODEL"),
-            "temperature": float(config.get("LLM_TEMPERATURE", 0.4)),
-            "keep_alive": config.get("LLM_KEEP_ALIVE", ""),
-            "throttle_delay": int(config.get("LLM_THROTTLE_DELAY", 0)),
-        }
-        return jsonify(public_config)
+    print_to_console(f"LLM provider '{provider}' initialized with model '{config.get('LLM_MODEL')}'", 'yellow')
 
     @app.route("/llm/get-response", methods=["POST", "OPTIONS"])
     def get_response():
@@ -50,7 +37,7 @@ def create_app() -> Flask:
                 messages=conversation,
                 temperature=temperature,
             )
-            print(f"[LLM API] Provider '{provider}' returned response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            print_to_console(f"LLM provider '{provider}' returned response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}", 'yellow')
             return jsonify(response)
         except Exception as exc:  # Provider errors surface in a uniform shape
             status_code = 500
@@ -61,7 +48,7 @@ def create_app() -> Flask:
                     message = exc.response.json().get("error", {}).get("message", message)
                 except Exception:
                     message = exc.response.text or message
-            print(f"[LLM API] Error ({status_code}): {message}")
+            print_to_console(f"LLM provider error ({status_code}): {message}", 'red')
             return jsonify({"error": {"message": message}}), status_code
 
     return app
