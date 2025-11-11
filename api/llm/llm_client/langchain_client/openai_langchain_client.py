@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+import threading
+import time
 
 from pydantic import BaseModel, Field
 
@@ -20,12 +22,29 @@ _SIMILARITY_FOR_HINTS = 0.4
 _SIMILARITY_FOR_DOCUMENTS = 0.6
 _SIMILARITY_FOR_ADDRESSES = 0.4
 
+# Module-level cumulative stat counters (persist for lifetime of process)
+# Protected by _cumulative_lock when updated.
+_cumulative_lock = threading.Lock()
+_cumulative_api_messages = 1
+_cumulative_api_seconds = 0.0
+_cumulative_prompt_tokens = 0
+_cumulative_completion_tokens = 0
+_cumulative_cached_tokens = 0
+_cumulative_total_cost = 0.0
+
 class ReadAddressesInput(BaseModel):
     addresses: List[str] = Field(description="The RAM addresses we want the values for.")
 
 class OpenAILangchainLlmClient(LangchainLlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
+
+    # Private helper to safely coerce values to integers
+    def _safe_int(self, v: Any) -> int:
+        try:
+            return int(v) if v is not None else 0
+        except Exception:
+            return 0
 
     def _make_tools(self) -> List[Any]:
         """
@@ -48,6 +67,8 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
     def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
         new_message = messages[-1].get("content", "") if messages else ""
+
+        start_time = time.perf_counter()
 
         # Search the documents vector DB for documents relevant to this message
         print_to_console('Searching vector DB for relevant documents...', 'yellow')
@@ -99,18 +120,50 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         with get_openai_callback() as cb:
             result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": []})
+            end_time = time.perf_counter()
+            elapsed_time = end_time - start_time
 
-            total_string = f"Total Tokens: {cb.total_tokens}"
-            prompt_string = f"Prompt Tokens: {cb.prompt_tokens}"
-            cached_string = f"Cached Tokens: {cb.prompt_tokens_cached}"
-            completion_string = f"Completion Tokens: {cb.completion_tokens}"
-            cost_string = f"Total Cost (USD): ${cb.total_cost}"
+            # Extract token counts (use safe conversion)
+            prompt_count = self._safe_int(getattr(cb, 'prompt_tokens', None))
+            completion_count = self._safe_int(getattr(cb, 'completion_tokens', None))
+            cached_count = self._safe_int(getattr(cb, 'prompt_tokens_cached', None))
 
-            print()
+            # Extract and normalize cost
+            try:
+                cost_val = float(getattr(cb, 'total_cost', 0.0))
+            except Exception:
+                cost_val = 0.0
+
+            # Update module-level cumulative counters in a thread-safe way
+            global _cumulative_prompt_tokens, _cumulative_completion_tokens, _cumulative_cached_tokens, _cumulative_api_seconds, _cumulative_api_messages, _cumulative_total_cost
+            with _cumulative_lock:
+                _cumulative_api_messages += 1
+                _cumulative_prompt_tokens += prompt_count
+                _cumulative_completion_tokens += completion_count
+                _cumulative_cached_tokens += cached_count
+                _cumulative_api_seconds += elapsed_time
+                _cumulative_total_cost += cost_val
+
+            # Prepare strings including cumulative totals in parentheses
+            cumulative_total_tokens = _cumulative_prompt_tokens + _cumulative_completion_tokens
+
+            total_string = f"Total Tokens      : {getattr(cb, 'total_tokens', 0)} (Total: {cumulative_total_tokens})"
+            prompt_string = f"Prompt Tokens     : {prompt_count} (Total: {_cumulative_prompt_tokens})"
+            cached_string = ''
+            if cached_count is not None:
+                cached_string = f"Cached Tokens     : {cached_count} (Total: {_cumulative_cached_tokens})"
+            completion_string = f"Completion Tokens : {completion_count} (Total: {_cumulative_completion_tokens})"
+            # Format cost: per-call rounded to 4 decimals, cumulative rounded to 2 decimals
+            cost_string = f"Total Cost (USD)  : ${cost_val:.4f} (Total: ${_cumulative_total_cost:.2f})"
+            time_string = f"Request Time      : {elapsed_time:.1f}s (Total: {_cumulative_api_seconds:.1f}s)"
+
+            print_to_console()
             print_to_console(total_string, color='yellow')
             print_to_console(prompt_string, color='yellow')
-            print_to_console(cached_string, color='yellow')
+            if cached_string:
+                print_to_console(cached_string, color='yellow')
             print_to_console(completion_string, color='yellow')
             print_to_console(cost_string, color='yellow')
+            print_to_console(time_string, color='yellow')
 
         return '{"answer": "' + result + '"}'
