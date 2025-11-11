@@ -25,7 +25,6 @@ def create_app() -> Flask:
             return ("", 200)
         payload = request.get_json(silent=True) or {}
         conversation = payload.get("messages", []) or payload.get("conversation", [])
-        temperature = payload.get("temperature")
 
         throttle_delay_ms = int(config.get("LLM_THROTTLE_DELAY", 0))
         if throttle_delay_ms:
@@ -33,10 +32,7 @@ def create_app() -> Flask:
 
         # Delegate to provider client
         try:
-            response = client.chat(
-                messages=conversation,
-                temperature=temperature,
-            )
+            response = client.chat(messages=conversation)
             print_to_console(f"LLM provider '{provider}' returned response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}", 'yellow')
             return jsonify(response)
         except Exception as exc:  # Provider errors surface in a uniform shape

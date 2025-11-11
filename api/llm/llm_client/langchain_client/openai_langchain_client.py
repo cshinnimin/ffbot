@@ -58,7 +58,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         return super()._create_executor()
     
 
-    def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
+    def _chat(self, messages: List[Dict[str, Any]]) -> str:
         new_message = messages[-1].get("content", "") if messages else ""
 
         start_time = time.perf_counter()

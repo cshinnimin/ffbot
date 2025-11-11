@@ -5,7 +5,7 @@ import requests
 from .base import ChatCompletionLlmClient
 
 class OpenAIChatCompletionLlmClient(ChatCompletionLlmClient):
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         url = "https://api.openai.com/v1/chat/completions"
         model = self.config.get("LLM_MODEL")
         api_key = self.config.get("LLM_API_KEY") or os.environ.get("LLM_API_KEY")
@@ -19,7 +19,8 @@ class OpenAIChatCompletionLlmClient(ChatCompletionLlmClient):
             "model": model,
             "messages": messages,
             "stream": False,
-            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
+            # Always use configured temperature from self.config / env
+            "temperature": self.config.get("LLM_TEMPERATURE")
         }
 
         data = self._post(url, headers, payload, timeout=60)

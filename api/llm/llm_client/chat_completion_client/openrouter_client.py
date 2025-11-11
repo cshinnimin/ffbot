@@ -4,7 +4,7 @@ import requests
 from .base import ChatCompletionLlmClient
 
 class OpenRouterChatCompletionLlmClient(ChatCompletionLlmClient):
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         url = "https://openrouter.ai/api/v1/chat/completions"
         model = self.config.get("LLM_MODEL")
         api_key = self.config.get("LLM_API_KEY")
@@ -18,7 +18,7 @@ class OpenRouterChatCompletionLlmClient(ChatCompletionLlmClient):
             "model": model,
             "messages": messages,
             "stream": False,
-            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
+            "temperature": self.config.get("LLM_TEMPERATURE")
         }
 
         data = self._post(url, headers, payload, timeout=60)

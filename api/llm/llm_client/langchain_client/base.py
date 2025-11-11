@@ -276,7 +276,7 @@ class LangchainLlmClient(LlmClient):
 
     # Use the Template Method Pattern to define code that should be
     # executed for all concrete instances of the base class 
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None):
+    def chat(self, messages: List[Dict[str, Any]]):
         """
         Publicly exposed method that ensures the vectordb is loaded,
         then delegates control to the implememtations of _chat
@@ -303,11 +303,11 @@ class LangchainLlmClient(LlmClient):
             self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
             print_to_console('Vector databases loaded.', 'yellow')
 
-        return self._chat(messages, temperature)
+        return self._chat(messages)
 
     # Complete the Template Method Pattern by defining the abstract
     # method the concrete classes are forced to implement
     @abstractmethod
-    def _chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
-        """ Return the assistant's answer as a plain string."""
+    def _chat(self, messages: List[Dict[str, Any]]) -> str:
+        """Return the assistant's answer as a plain string."""
         raise NotImplementedError

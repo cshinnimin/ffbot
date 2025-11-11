@@ -7,7 +7,7 @@ class LlmClient(ABC):
         self.config = config
 
     @abstractmethod
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Any:
+    def chat(self, messages: List[Dict[str, Any]]) -> Any:
         """Send a list of messages to the LLM and return the response."""
         raise NotImplementedError
 
