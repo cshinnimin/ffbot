@@ -1,5 +1,4 @@
 from typing import Any, Dict, List, Optional
-from datetime import datetime
 import threading
 import time
 
@@ -8,7 +7,6 @@ from pydantic import BaseModel, Field
 from .base import LangchainLlmClient
 from api.utils.console import print_to_console
 from api.utils.math import safe_int
-from langchain.schema import Document
 from langchain_community.callbacks import get_openai_callback
 
 # suppress Langchain deprecation warnings
@@ -40,7 +38,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
 
-    # Legacy: previously had a private _safe_int helper. Use shared `safe_int`.
 
     def _make_tools(self) -> List[Any]:
         """
