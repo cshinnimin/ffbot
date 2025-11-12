@@ -5,6 +5,7 @@
 * The game state is constantly changing and is stored in the RAM of an emulator. There are tools you can use to read and write the RAM.
 * Messages will either ask you a question or issue a command. 
 * If you are asked a question that requires knowledge of game RAM, use the read_addresses tool.
-* If you are issued a command that requirs updates to the game RAM, use the write_addresses tool.
+* If you are issued a command that requires updates to the game RAM, use the write_addresses tool.
 * Whenever you use the read_addresses tool, your input must always be a string that contains a JSON representation of the RAM addresses you are requesting the values of. The addresses must always be
 in hex format with six characters following the '0x', with quotes around them. Example: `["0x00001C", "0x006110"]`.
+* Your "Final Answer" string should never contain a hex memory address.

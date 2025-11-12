@@ -13,9 +13,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ persona, message }) => {
   // Replace literal escaped sequences with actual characters so the
   // chat bubble shows newlines and tabs as intended.
   const formattedMessage = message
-    .replace(/\\r\\n/g, '\r\n')
-    .replace(/\\n/g, '\n')
-    .replace(/\\t/g, '\t');
+    .replace(/\\r\\n/g, '\r\n') // convert carriage returns
+    .replace(/\\n/g, '\n') // convert newlines
+    .replace(/\\t/g, '\t') // convert tabs
+    .replace(/\\u2014/g, '\u2014'); // convert em dashes (double-width dashes)
+
   const avatarSrc = persona === 'User' ? '/images/user-avatar.png' : '/images/ffbot-avatar.png';
   
   return (
