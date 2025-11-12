@@ -10,9 +10,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ persona, message }) => {
   const chatClass = persona === 'User' ? 'chat chat-start' : 'chat chat-end';
   const headerText = persona === 'Bot' ? 'FFBot' : 'Adventurer';
 
-  // Replace literal "\\n" sequences in the message with actual newlines and render
-  // with `white-space: pre-wrap` so newlines are preserved in the UI.
-  const formattedMessage = message.replace(/\\n/g, '\n');
+  // Replace literal escaped sequences with actual characters so the
+  // chat bubble shows newlines and tabs as intended.
+  const formattedMessage = message
+    .replace(/\\r\\n/g, '\r\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t');
   const avatarSrc = persona === 'User' ? '/images/user-avatar.png' : '/images/ffbot-avatar.png';
   
   return (
