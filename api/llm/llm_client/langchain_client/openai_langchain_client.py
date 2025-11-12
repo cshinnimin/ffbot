@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 import threading
 import time
+import json
 
 from pydantic import BaseModel, Field
 
@@ -159,5 +160,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             print_to_console(cost_string, color='yellow')
             print_to_console(time_string, color='yellow')
 
-        # return answer in JSON format expected by the front end
-        return '{"answer": "' + result.replace('"', '\\"') + '"}'
+        # Return answer in JSON format expected by the front end.
+        # Use json.dumps to ensure all characters (quotes, backslashes, newlines,
+        # and other control characters) are properly escaped.
+        return json.dumps({"answer": str(result)})
