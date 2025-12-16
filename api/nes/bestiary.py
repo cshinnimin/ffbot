@@ -86,3 +86,50 @@ def get_monsters_by_location(location: str) -> Tuple[Dict[str, List[str]], int]:
 
 
 __all__ = ["_load_bestiary", "get_monsters_by_location"]
+
+
+def get_locations_by_monster(monsters: List[str]) -> Tuple[Dict[str, Dict[str, List[str]]], int]:
+    """
+    Given a list of monster names, return a mapping from each (possibly-singularized)
+    monster string to a list of locations where that monster appears.
+
+    This mirrors `requestLocationsByMonster` in the frontend hook: it will strip a
+    trailing 's' from monster names (except 'cerebus' and 'chaos') before lookup.
+
+    Returns (result, status) where `result` is of the form {"locations": {monster: [locs]}}
+    on success, or an error message string and HTTP status on failure.
+    """
+    if not isinstance(monsters, list):
+        return ("monsters must be a list", 400)
+
+    try:
+        _, reverse_bestiary = _load_bestiary()
+    except FileNotFoundError:
+        return (f"bestiary.json not found at {_BESTIARY_PATH}", 500)
+    except Exception as e:
+        return (f"Error loading bestiary.json: {e}", 500)
+
+    def singularize(name: str) -> str:
+        low = name.lower()
+        if low not in ("cerebus", "chaos") and low.endswith('s'):
+            return name[:-1]
+        return name
+
+    def normalize(name: str) -> str:
+        return ''.join([c for c in name.lower() if c.isalnum()])
+
+    locations_obj: Dict[str, List[str]] = {}
+    for m in monsters:
+        if not isinstance(m, str):
+            locations_obj[str(m)] = ["monster not found"]
+            continue
+
+        singular = singularize(m)
+        key = normalize(singular)
+        locations = reverse_bestiary.get(key) or ["monster not found"]
+        locations_obj[singular] = locations
+
+    return ({"locations": locations_obj}, 200)
+
+
+__all__.append("get_locations_by_monster")
