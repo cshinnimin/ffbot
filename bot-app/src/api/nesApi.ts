@@ -50,3 +50,49 @@ export async function sendLuaScript(luaScript: string) {
 
   return response.ok;
 }
+
+export async function getMonstersByLocation(location: string) {
+  const port = import.meta.env.NES_API_PORT || '5000';
+  const url = `http://localhost:${port}/nes/bestiary/get-monsters-by-location`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ location }),
+  });
+
+  if (!response.ok) {
+    let errMsg = 'Failed to retrieve bestiary monsters for location.';
+    try {
+      const data = await response.json();
+      if (data && data.error) errMsg = data.error;
+    } catch (e) {}
+    throw new Error(errMsg);
+  }
+
+  const data = await response.json();
+  return data.monsters as string[];
+}
+
+export async function getLocationsByMonster(monsters: string[]) {
+  const port = import.meta.env.NES_API_PORT || '5000';
+  const url = `http://localhost:${port}/nes/bestiary/get-locations-by-monster`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ monsters }),
+  });
+
+  if (!response.ok) {
+    let errMsg = 'Failed to retrieve bestiary locations for monsters.';
+    try {
+      const data = await response.json();
+      if (data && data.error) errMsg = data.error;
+    } catch (e) {}
+    throw new Error(errMsg);
+  }
+
+  const data = await response.json();
+  return data.locations as Record<string, string[]>;
+}
