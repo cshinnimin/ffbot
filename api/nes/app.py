@@ -5,6 +5,7 @@ from .config import get_config
 from .write_lua import write_lua_script
 from .write import write_addresses
 from .read import read_addresses
+from .bestiary import get_monsters_by_location
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -46,6 +47,20 @@ def create_app() -> Flask:
         if status != 200:
             return (jsonify({"error": result}), status)
         
+        return (jsonify(result), 200)
+
+    @app.route('/nes/bestiary/get-monsters-by-location', methods=['POST', 'OPTIONS'])
+    def _get_monsters_by_location_route():
+        if request.method == 'OPTIONS':
+            return ('', 200)
+
+        payload = request.get_json(silent=True) or {}
+        location = payload.get('location')
+        result, status = get_monsters_by_location(location)
+
+        if status != 200:
+            return (jsonify({"error": result}), status)
+
         return (jsonify(result), 200)
 
     return app
