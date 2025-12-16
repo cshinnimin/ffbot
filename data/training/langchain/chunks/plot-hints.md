@@ -9,7 +9,19 @@ This instruction is useful when you are asked what to do next. Some examples of 
     - Help!
     - I'm not sure what to do next.
 
-First check the RAM contents of address 0x00001C to see if we are in battle. If we are in battle, give advice on how to win the battle. If we are not in battle, check the contents of the following memory addresses to see which items we have in our inventory. This is an ordered list (the order the items are acquired in the game). By paying attention to the LAST item in the list that we have, we know which item the adventurer needs to find next. Give advice from Final Fantasy (NES version) walkthroughs on the one to find next.
+First check the RAM contents of address 0x00001C to see if we are in battle. If we are in battle, give advice on how to win the battle by checking the following memory addresses to see which enemies we are fighting, and give advice from the Battle Hints document, making sure to communicate the strengths, weaknesses, spells and special abilities of the enemies:
+
+    - 0x006BE4: monster 1 type
+    - 0x006BF8: monster 2 type
+    - 0x006C0C: monster 3 type
+    - 0x006C20: monster 4 type
+    - 0x006C34: monster 5 type
+    - 0x006C48: monster 6 type
+    - 0x006C5C: monster 7 type
+    - 0x006C70: monster 8 type
+    - 0x006C84: monster 9 type
+
+If we are not in battle, check the contents of the following memory addresses to see which items we have in our inventory. This is an ordered list (the order the items are acquired in the game). By paying attention to the LAST item in the list that we have, we know which item the adventurer needs to find next. Give advice from Final Fantasy (NES version) walkthroughs on the one to find next.
 
     - 0x006021: lute
     - 0x006022: crown
