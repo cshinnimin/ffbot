@@ -1,6 +1,9 @@
 import json
 from .config import get_config
 from typing import Dict, Any, List, Tuple
+from langchain.tools import tool
+
+from api.utils.console import print_to_console
 
 """
 Bestiary loader.
@@ -133,3 +136,85 @@ def get_locations_by_monster(monsters: List[str]) -> Tuple[Dict[str, Dict[str, L
 
 
 __all__.append("get_locations_by_monster")
+
+
+# Provide LangChain tool wrappers while keeping the core functions plain for Flask/other usage.
+@tool
+def get_monsters_by_location_tool(arg_str: str) -> str:
+    """
+    LangChain tool wrapper around `get_monsters_by_location` that accepts a JSON string
+    (as provided by the LLM) and returns a JSON string result (expected by the LLM).
+
+    Input examples:
+      '"(Some Location)"'
+      '{"location": "(Some Location)"}'
+
+    Output example: '{"monsters": ["Imp", "Goblin"]}'
+    """
+    print_to_console()
+    print_to_console('Calling get_monsters_by_location tool:', color='yellow')
+    print_to_console('arg_str = ' + arg_str)
+
+    # Parse location from the LLM-provided JSON string
+    try:
+        parsed = json.loads(arg_str)
+        if isinstance(parsed, dict) and 'location' in parsed:
+            location = parsed['location']
+        else:
+            # assume the parsed value itself is the location string
+            location = parsed
+    except Exception as e:
+        print_to_console(f'error = {e}', 'red')
+        return '{"error": "Failed to parse tool input: ' + str(e) + '"}'
+
+    result, status = get_monsters_by_location(location)
+    if status != 200:
+        print_to_console('error = ' + str(result), 'red')
+        return '{"error": "' + str(result) + '"}'
+
+    try:
+        print_to_console('result = ' + json.dumps(result))
+        return json.dumps(result)
+    except Exception as e:
+        print_to_console('error = ' + str(e), 'red')
+        return '{"error": "' + str(e) + '"}'
+
+
+@tool
+def get_locations_by_monster_tool(arg_str: str) -> str:
+    """
+    LangChain tool wrapper around `get_locations_by_monster` that accepts a JSON string
+    (as provided by the LLM) and returns a JSON string result (expected by the LLM).
+
+    Input examples:
+      '["Goblin","Imps"]'
+      '{"monsters": ["Goblin","Imps"]}'
+
+    Output example: '{"locations": {"Goblin": ["(Loc1)"], "Imp": ["(Loc2)"]}}'
+    """
+    print_to_console()
+    print_to_console('Calling get_locations_by_monster tool:', color='yellow')
+    print_to_console('arg_str = ' + arg_str)
+
+    try:
+        parsed = json.loads(arg_str)
+        if isinstance(parsed, dict) and 'monsters' in parsed:
+            monsters = parsed['monsters']
+        else:
+            monsters = parsed
+    except Exception as e:
+        print_to_console(f'error = {e}', 'red')
+        return '{"error": "Failed to parse tool input: ' + str(e) + '"}'
+
+    result, status = get_locations_by_monster(monsters)
+    if status != 200:
+        print_to_console('error = ' + str(result), 'red')
+        return '{"error": "' + str(result) + '"}'
+
+    try:
+        print_to_console('result = ' + json.dumps(result))
+        return json.dumps(result)
+    except Exception as e:
+        print_to_console('error = ' + str(e), 'red')
+        return '{"error": "' + str(e) + '"}'
+

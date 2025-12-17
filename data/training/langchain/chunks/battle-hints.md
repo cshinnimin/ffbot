@@ -1,5 +1,11 @@
 # Battle Hints
 
+This document is useful if you are asked a question about battle tactics, such as:
+
+  - How do I defeat the current enemies?
+  - What should I do? (assuming the adventurer is in battle)
+  - How should I approach this battle? 
+
 ## Regular Enemies
 
 ### Imps & Goblins

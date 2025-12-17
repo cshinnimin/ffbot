@@ -1,11 +1,12 @@
 # Overworld Landmarks
 
-This instruction is useful for any question about the current location of the party. For example, if asked:
+This instruction is useful for any question about the location of something, such as the adventurer, a specific type of enemy, or a town or dungeon. For example, if asked:
 
     - Am I near <some_location>?
     - Where am I?
     - What is nearby/close?
     - I'm lost.
+    - Where can I find <some_monster> enemies?
 
 ## Overworld Landmark by Coordinate (X, Y, Landmark)
 
@@ -71,3 +72,37 @@ This instruction is useful for any question about the current location of the pa
 228,91 Lefein
 228,92 Lefein
 229,92 Lefein
+
+## Overworld Landmark by "Cell"
+
+4,4 Cornelia
+4,4 Cornelia Castle
+3,3 Temple of Fiends
+5,3 Matoya's Cave
+6,4 Pravoka
+6,3 Peninsula of Power
+3,6 ElfLand
+4,6 Castle of Elf
+2,5 Northwest Castle
+3,5 Northwest Castle
+2,7 Marsh Cave
+2,4 Dwarf Cave
+2,4 Melmond
+0,5 Titan's Tunnel
+1,5 Titan's Tunnel
+0,5 Sarda's Cave
+1,5 Earth Cave
+6,6 Crescent Lake
+5,6 Gurgu Volcano
+5,5 Ice Cave
+6,7 Ryukahn Desert
+3,1 Castle of Ordeal
+6,0 Gaia
+2,1 Cardia Islands
+3,1 Cardia Islands
+2,1 Cardia Islands
+2,1 Bahamut's Chamber
+0,1 Desert Caravan
+1,1 Onrac
+1,0 Waterfall
+7,2 Lefein

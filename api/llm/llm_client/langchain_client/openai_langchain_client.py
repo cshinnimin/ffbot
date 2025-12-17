@@ -16,8 +16,8 @@ from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
 _K_FOR_HINTS = 3
-_K_FOR_DOCUMENTS = 3
-_K_FOR_ADDRESSES = 30
+_K_FOR_DOCUMENTS = 5
+_K_FOR_ADDRESSES = 3
 _SIMILARITY_FOR_HINTS = 0.4
 _SIMILARITY_FOR_DOCUMENTS = 0.6
 _SIMILARITY_FOR_ADDRESSES = 0.4
@@ -74,10 +74,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             space_chunks=True,
         )
 
-        print_to_console()
-        print_to_console('Documents Retrieved from Vector DB:', color='yellow')
-        print_to_console(documents_text)
-
         # Search the hints vector DB for hints relevant to this message
         print_to_console('Searching vector DB for relevant hints...', 'yellow')
         hints_text = self._retrieve_from_vector_db(
@@ -88,10 +84,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             space_chunks=False,
         )
 
-        print_to_console()
-        print_to_console('Hints Retrieved from Vector DB:', color='yellow')
-        print_to_console(hints_text)
-
         # Search the addresses vector DB for memory addresses relevant to this message
         print_to_console('Searching vector DB for relevant memory addresses...', 'yellow')
         addresses_text = self._retrieve_from_vector_db(
@@ -101,10 +93,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
             _SIMILARITY_FOR_ADDRESSES,
             space_chunks=True,
         )
-
-        print_to_console()
-        print_to_console('Addresses Retrieved from Vector DB:', color='yellow')
-        print_to_console(addresses_text)
 
         # create instructions text from concatenation of entire initial instructions document
         # (at data/training/langchain/initial-instructions.md) and the top-k chunks from

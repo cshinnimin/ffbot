@@ -15,6 +15,7 @@ from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 
 from api.nes.read import read_addresses, read_addresses_tool
 from api.nes.write import write_addresses, write_addresses_tool
+from api.nes.bestiary import get_monsters_by_location_tool, get_locations_by_monster_tool
 from api.utils.console import print_to_console
 
 # resolve paths relative to the repository root so the code works
@@ -101,7 +102,7 @@ class LangchainLlmClient(LlmClient):
                 func=write_addresses_tool,
                 description="""
                     Writes values to dynamic RAM addresses. Accepts a JSON string (provided by LLM)
-	                and returns a JSON string result (expected by the LLM).
+                    and returns a JSON string result (expected by the LLM).
 
                     Input: `Dict[str,str] addresses`: A map whose key is the RAM addresses 
                         to update and whose value is the new value to update to. 
@@ -110,6 +111,30 @@ class LangchainLlmClient(LlmClient):
 
                     Output: `str result`: A string confirming a file has been written. Example:
                         'execute.lua written successfully'
+                """
+            ),
+            Tool(
+                name="get_monsters_by_location",
+                func=get_monsters_by_location_tool,
+                description="""
+                    Retrieves the list of monsters present at a given location.
+
+                    Input: a JSON string containing either a single string or an object with key `location`.
+                      Example: '{{"location":"(Some Location)"}}'
+
+                    Output: JSON string: '{{"monsters": ["Imp","Goblin"]}}'
+                """
+            ),
+            Tool(
+                name="get_locations_by_monster",
+                func=get_locations_by_monster_tool,
+                description="""
+                    Retrieves locations for one or more monsters.
+
+                    Input: a JSON string containing either an array of monster names or an object with key `monsters`.
+                      Example: '{{"monsters":["Goblin","Imps"]}}'
+
+                    Output: JSON string: '{{"locations": {{"Goblin": ["(Loc1)"], "Imp": ["(Loc2)"]}}}}'
                 """
             )
         ]
@@ -134,20 +159,22 @@ class LangchainLlmClient(LlmClient):
         tools = self._make_tools()
         # Build a prompt that includes instructions and the conversation history
         prefix = (
-            "OPERATIONAL INSTRUCTIONS (follow these exactly):\n{instructions}\n\n"
-            "CONVERSATION HISTORY (most recent last):\n{history}\n\n"
-            "FORMAT RULES (follow exactly):\n"
-            "1) You must produce exactly ONE of the following:\n"
-            "   - An Action block describing the tool to call, in the exact form:\n"
-            "       Action: <tool_name>\n"
-            "       Action Input: <JSON list or JSON object>\n"
-            "     (and nothing else besides brief thought lines)\n"
-            "   OR\n"
-            "   - A Final Answer line only, on its own line, starting with:\n"
-            "       Final Answer: <your answer>\n"
-            "     (if you provide a Final Answer, do NOT include any Action block)\n"
-            "2) If both appear, the grader will treat the output as invalid.\n"
-            "3) Keep tool usage minimal and only call a tool when necessary.\n\n"
+            "CRITICAL FORMAT REQUIREMENT - READ CAREFULLY:\n"
+            "You MUST output EITHER an Action OR a Final Answer - NEVER BOTH.\n"
+            "Outputting both will cause system failure.\n\n"
+            
+            "Option 1 - Taking an Action (when you need to use a tool):\n"
+            "Action: <tool_name>\n"
+            "Action Input: <JSON list or JSON object>\n\n"
+            
+            "Option 2 - Providing Final Answer (when you have enough information):\n"
+            "Final Answer: <your answer>\n\n"
+            
+            "STOP after whichever option you choose. Do not continue writing.\n\n"
+            
+            "---\n"
+            "OPERATIONAL INSTRUCTIONS:\n{instructions}\n\n"
+            "CONVERSATION HISTORY:\n{history}\n\n"
         )
         suffix = "\nUser Input: {input}\n{agent_scratchpad}"
         agent_prompt = ZeroShotAgent.create_prompt(
@@ -256,7 +283,9 @@ class LangchainLlmClient(LlmClient):
             Between 0 to k chunks will be returned depending on how many meet the similarity threshold.
         """
         # similarity_search_with_score returns List[Tuple[Document, float]]
-        chunks = vectordb.similarity_search_with_score(user_input, k=k)
+        # pass k*2 in to similarity_search_with_score method so we can see information in
+        # the console about which chunks were not returned as well
+        chunks = vectordb.similarity_search_with_score(user_input, k=k*2)
 
         selected_texts: List[str] = []
         joiner = "\n\n" if space_chunks else "\n"
@@ -265,12 +294,16 @@ class LangchainLlmClient(LlmClient):
             # Log the similarity score and a preview for all top-k chunks retrieved for debugging.
             # Replace newlines with spaces so the console output stays on one line
             preview = chunk.page_content.replace("\n", " ")[:60]
-            print_to_console(f"{score:.3f}: {preview}")
-            if score <= similarity:
+            preview_colour = ""
+
+            if score <= similarity and len(selected_texts) < k:
                 # if the score is nearer than the specified similarity threshold,
                 # add it to selected_text so we can return it
                 selected_texts.append(chunk.page_content)
-
+                preview_colour = "green"
+                
+            print_to_console(f"{score:.3f}: {preview}", preview_colour)
+                
         return joiner.join(selected_texts)
 
 
