@@ -7,14 +7,12 @@ import os, shutil
 from pathlib import Path
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader, TextLoader
 from langchain_text_splitters import CharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
-from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 
-from api.nes.read import read_addresses, read_addresses_tool
-from api.nes.write import write_addresses, write_addresses_tool
+from api.nes.read import read_addresses_tool
+from api.nes.write import write_addresses_tool
 from api.nes.bestiary import get_monsters_by_location_tool, get_locations_by_monster_tool
 from api.nes.names import get_names_tool
 from api.nes.order import order_party_tool
@@ -32,38 +30,11 @@ import warnings
 from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
-class SafeChatOpenAI(ChatOpenAI):
-    """
-    Subclass that ensures a 'stop' parameter is never forwarded to the provider.
-    Some newer OpenAI models (such as gpt-5) reject a 'stop' parameter.
-    """
-    def __call__(self, *args, **kwargs):
-        kwargs.pop("stop", None)
-        return super().__call__(*args, **kwargs)
-
-    async def __acall__(self, *args, **kwargs):
-        kwargs.pop("stop", None)
-        return await super().__acall__(*args, **kwargs)
-
-    # Override generate/agenerate too—some LangChain versions call these directly.
-    def generate(self, messages, stop=None, **kwargs):
-        # ensure stop is never forwarded
-        return super().generate(messages, stop=None, **kwargs)
-
-    async def agenerate(self, messages, stop=None, **kwargs):
-        return await super().agenerate(messages, stop=None, **kwargs)
-    
 
 class LangchainLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.config = config
-
-        # load our API key from environment variables
-        openai_key = self.config.get("LLM_API_KEY")
-        if not openai_key:
-            raise RuntimeError("Environment variable LLM_API_KEY is not set")
-        os.environ['OPENAI_API_KEY'] = openai_key
 
         # load initial instructions that will serve as the QA Chain Template
         # use a TextLoader rather than an UnstructuredMarkdownLoader so that no attempts
@@ -174,11 +145,8 @@ class LangchainLlmClient(LlmClient):
         temperature = self.config.get("LLM_TEMPERATURE", 1)
         max_attempts = self.config.get("LLM_MAX_ATTEMPTS", 5)
 
-        # Use a SafeChatOpenAI to specify the LLM. This is a custom wrapper
-        # class that wraps OpenAI's ChatOpenAI() and provides an override
-        # to ensure that a `stop` parameter is never forwarded to the provider
-        # since newer models like gpt-5 do not support this parameter
-        llm = SafeChatOpenAI(model_name=model_name, temperature=temperature)
+        # Delegate provider-specific LLM creation to the concrete subclass
+        llm = self._get_llm(model_name=model_name, temperature=temperature)
 
         tools = self._make_tools()
         # Build a prompt that includes instructions and the conversation history
@@ -277,7 +245,7 @@ class LangchainLlmClient(LlmClient):
         address_chunk_strings = splitter.split_text(addresses_text)
 
         # create a Chroma DB vector store and add chunks to it as lists of strings
-        embedding = OpenAIEmbeddings()
+        embedding = self._get_embeddings()
         # store the Chroma vector DB on the instance so other methods can access it
         self._vectordb_documents = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/documents', embedding_function=embedding)
         self._vectordb_documents.add_texts(document_chunk_strings)
@@ -354,7 +322,7 @@ class LangchainLlmClient(LlmClient):
         else:
             # Otherwise just load the existing vector DB
             print_to_console('Existing vector databases found. Loading...', 'yellow')
-            embedding = OpenAIEmbeddings()
+            embedding = self._get_embeddings()
             self._vectordb_documents = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/documents', embedding_function=embedding)
             self._vectordb_hints = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/hints', embedding_function=embedding)
             self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
@@ -368,3 +336,13 @@ class LangchainLlmClient(LlmClient):
     def _chat(self, messages: List[Dict[str, Any]]) -> str:
         """Return the assistant's answer as a plain string."""
         raise NotImplementedError
+
+
+    @abstractmethod
+    def _get_llm(self, model_name: str, temperature: float):
+        """Return a provider-specific LLM instance compatible with LangChain."""
+
+
+    @abstractmethod
+    def _get_embeddings(self):
+        """Return a provider-specific embeddings instance (callable for Chroma)."""

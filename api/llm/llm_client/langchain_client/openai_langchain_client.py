@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional
 import threading
 import time
 import json
+import os
 
 from pydantic import BaseModel, Field
 
@@ -9,6 +10,10 @@ from .base import LangchainLlmClient
 from api.utils.console import print_to_console
 from api.utils.math import safe_int
 from langchain_community.callbacks import get_openai_callback
+
+# provider-specific imports
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.chat_models import ChatOpenAI
 
 # suppress Langchain deprecation warnings
 import warnings
@@ -32,11 +37,40 @@ _cumulative_completion_tokens = 0
 _cumulative_cached_tokens = 0
 _cumulative_total_cost = 0.0
 
+
 class ReadAddressesInput(BaseModel):
     addresses: List[str] = Field(description="The RAM addresses we want the values for.")
 
+
+class SafeChatOpenAI(ChatOpenAI):
+    """
+    Subclass that ensures a 'stop' parameter is never forwarded to the provider.
+    Some newer OpenAI models (such as gpt-5) reject a 'stop' parameter.
+    """
+    def __call__(self, *args, **kwargs):
+        kwargs.pop("stop", None)
+        return super().__call__(*args, **kwargs)
+
+    async def __acall__(self, *args, **kwargs):
+        kwargs.pop("stop", None)
+        return await super().__acall__(*args, **kwargs)
+
+    # Override generate/agenerate too—some LangChain versions call these directly.
+    def generate(self, messages, stop=None, **kwargs):
+        # ensure stop is never forwarded
+        return super().generate(messages, stop=None, **kwargs)
+
+    async def agenerate(self, messages, stop=None, **kwargs):
+        return await super().agenerate(messages, stop=None, **kwargs)
+
+
 class OpenAILangchainLlmClient(LangchainLlmClient):
     def __init__(self, config: Dict[str, Any]):
+        # Ensure provider-specific environment/config is set before base __init__
+        api_key = config.get("LLM_API_KEY")
+        if api_key:
+            os.environ['OPENAI_API_KEY'] = api_key
+
         super().__init__(config)
 
 
@@ -57,7 +91,18 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         # The executor construction is provided by the base class. Subclasses
         # may override this if they need custom behaviour.
         return super()._create_executor()
-    
+
+    # Provider factory used by base class to create the LLM instance
+    def _get_llm(self, model_name: str, temperature: float):
+        # Use a SafeChatOpenAI to specify the LLM. This is a custom wrapper
+        # class that wraps OpenAI's ChatOpenAI() and provides an override
+        # to ensure that a `stop` parameter is never forwarded to the provider
+        # since newer models like gpt-5 do not support this parameter
+        return SafeChatOpenAI(model_name=model_name, temperature=temperature)
+
+    # Provider factory used by base class to create embeddings for Chroma
+    def _get_embeddings(self):
+        return OpenAIEmbeddings()
 
     def _chat(self, messages: List[Dict[str, Any]]) -> str:
         new_message = messages[-1].get("content", "") if messages else ""
@@ -152,3 +197,15 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         # Use json.dumps to ensure all characters (quotes, backslashes, newlines,
         # and other control characters) are properly escaped.
         return json.dumps({"answer": str(result)})
+
+
+def create_langchain_client(config: Dict[str, any]):
+    """Simple constructor helper for the OpenAI langchain client.
+
+    This keeps instantiation local to the provider module and avoids a
+    separate registry/factory when only one provider is used.
+    """
+    provider = (config.get("LLM_PROVIDER") or "openai").lower()
+    if provider != "openai":
+        raise ValueError(f"Only 'openai' provider supported by this factory: got '{provider}'")
+    return OpenAILangchainLlmClient(config)
