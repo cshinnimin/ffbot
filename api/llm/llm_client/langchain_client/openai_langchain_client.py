@@ -17,10 +17,10 @@ warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
 _K_FOR_HINTS = 3
 _K_FOR_DOCUMENTS = 5
-_K_FOR_ADDRESSES = 3
+_K_FOR_ADDRESSES = 20
 _SIMILARITY_FOR_HINTS = 0.4
 _SIMILARITY_FOR_DOCUMENTS = 0.6
-_SIMILARITY_FOR_ADDRESSES = 0.4
+_SIMILARITY_FOR_ADDRESSES = 0.5
 
 # Module-level cumulative stat counters (persist for lifetime of process)
 # Protected by _cumulative_lock when updated.

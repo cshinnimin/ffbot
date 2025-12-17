@@ -70,14 +70,22 @@
 	- 0x006180
 * <character_4> class
 	- 0x0061C0
-* <character_1> HP
-	- 0x00610A+0x00610B
-* <character_2> HP
-	- 0x00614A+0x00614B
-* <character_3> HP
-	- 0x00618A+0x00618B
-* <character_4> HP
-	- 0x0061CA+0x0061CB
+* <character_1> HP (life, health)
+	- Sum results for 0x00610A and 0x00610B
+* <character_2> HP (life, health)
+	- Sum results for 0x00614A and 0x00614B
+* <character_3> HP (life, health)
+	- Sum results for 0x00618A and 0x00618B
+* <character_4> HP (life, health)
+	- Sum results for 0x0061CA and 0x0061CB
+* <character_1> Maximum HP (life, health)
+	- Sum results for 0x00610C and 0x00610D
+* <character_2> Maximum HP (life, health)
+	- Sum results for 0x00614C and 0x00614D
+* <character_3> Maximum HP (life, health)
+	- Sum results for 0x00618C and 0x00618D
+* <character_4> Maximum HP (life, health)
+	- Sum results for 0x0061CC and 0x0061CD
 * <character_1> strength
 	- 0x006110
 * <character_2> strength
