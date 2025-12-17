@@ -9,3 +9,4 @@
 * Whenever you use the read_addresses tool, your input must always be a string that contains a JSON representation of the RAM addresses you are requesting the values of. The addresses must always be
 in hex format with six characters following the '0x', with quotes around them. Example: `["0x00001C", "0x006110"]`.
 * Your "Final Answer" string should never contain a hex memory address.
+* If you need to know the names of the characters in the adventurers party, or their order, use the get_names tool. The four character names never change, but their order can change (if "Artr" is <character_1> now, he may later be <character_2>, <character_3> or <character_4>).

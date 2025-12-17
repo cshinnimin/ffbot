@@ -16,6 +16,7 @@ from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 from api.nes.read import read_addresses, read_addresses_tool
 from api.nes.write import write_addresses, write_addresses_tool
 from api.nes.bestiary import get_monsters_by_location_tool, get_locations_by_monster_tool
+from api.nes.names import get_names_tool
 from api.utils.console import print_to_console
 
 # resolve paths relative to the repository root so the code works
@@ -135,6 +136,18 @@ class LangchainLlmClient(LlmClient):
                       Example: '{{"monsters":["Goblin","Imps"]}}'
 
                     Output: JSON string: '{{"locations": {{"Goblin": ["(Loc1)"], "Imp": ["(Loc2)"]}}}}'
+                """
+            ),
+            Tool(
+                name="get_names",
+                func=get_names_tool,
+                description="""
+                    Retrieves the four character names from RAM and returns them as
+                    a JSON object with keys character_1..character_4.
+
+                    Input: optional JSON (ignored).
+
+                    Output: JSON string: '{{"character_1":"ABCD","character_2":"EFGH", ...}}'
                 """
             )
         ]

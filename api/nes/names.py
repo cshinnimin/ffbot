@@ -2,6 +2,9 @@ import json
 from typing import Dict, Any, Tuple, List
 from .config import get_config
 from .read import read_addresses
+from langchain.tools import tool
+
+from api.utils.console import print_to_console
 
 _config = get_config()
 _RAMDISK_DIR = _config['RAMDISK_DIR']
@@ -57,3 +60,38 @@ def get_names() -> Tuple[Dict[str, str], int]:
 
 
 __all__ = ["NAME_ADDRESSES", "get_names"]
+
+
+@tool
+def get_names_tool(arg_str: str) -> str:
+    """
+    LangChain tool wrapper around `get_names` that accepts an optional JSON
+    string and returns a JSON string result.
+
+    Input examples:
+      '{}'
+      'null'
+
+    Output example: '{"character_1":"ABCD","character_2":"EFGH",...}'
+    """
+    print_to_console()
+    print_to_console('Calling get_names tool:', color='yellow')
+    print_to_console('arg_str = ' + str(arg_str))
+
+    # We don't require any specific input; just call get_names
+    try:
+        result, status = get_names()
+    except Exception as e:
+        print_to_console('error = ' + str(e), 'red')
+        return '{"error": "' + str(e) + '"}'
+
+    if status != 200:
+        print_to_console('error = ' + str(result), 'red')
+        return '{"error": "' + str(result) + '"}'
+
+    try:
+        print_to_console('result = ' + json.dumps(result))
+        return json.dumps(result)
+    except Exception as e:
+        print_to_console('error = ' + str(e), 'red')
+        return '{"error": "' + str(e) + '"}'
