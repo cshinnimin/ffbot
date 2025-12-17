@@ -7,6 +7,7 @@ from .write import write_addresses
 from .read import read_addresses
 from .bestiary import get_monsters_by_location
 from .bestiary import get_locations_by_monster
+from .names import get_names
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -72,6 +73,19 @@ def create_app() -> Flask:
         payload = request.get_json(silent=True) or {}
         monsters = payload.get('monsters')
         result, status = get_locations_by_monster(monsters)
+
+        if status != 200:
+            return (jsonify({"error": result}), status)
+
+        return (jsonify(result), 200)
+
+    @app.route('/nes/names/get', methods=['POST', 'OPTIONS'])
+    def _get_names_route():
+        if request.method == 'OPTIONS':
+            return ('', 200)
+
+        # No payload required; simply return the four character names
+        result, status = get_names()
 
         if status != 200:
             return (jsonify({"error": result}), status)
