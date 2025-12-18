@@ -18,6 +18,16 @@ from api.nes.names import get_names_tool
 from api.nes.order import order_party_tool
 from api.utils.console import print_to_console
 
+# Defaults for vector DB retrieval used to assemble instructions.
+# These are provider-agnostic and belong in the base class so all
+# concrete clients can reuse the same behavior.
+_K_FOR_HINTS = 3
+_K_FOR_DOCUMENTS = 5
+_K_FOR_ADDRESSES = 20
+_SIMILARITY_FOR_HINTS = 0.4
+_SIMILARITY_FOR_DOCUMENTS = 0.6
+_SIMILARITY_FOR_ADDRESSES = 0.5
+
 # resolve paths relative to the repository root so the code works
 # regardless of the current working directory when scripts are run
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
@@ -301,6 +311,57 @@ class LangchainLlmClient(LlmClient):
             print_to_console(f"{score:.3f}: {preview}", preview_colour)
                 
         return joiner.join(selected_texts)
+
+
+    def _retrieve_instructions(self, new_message: str) -> str:
+        """
+        Provider-agnostic helper that queries the three vector DBs (documents, hints,
+        and addresses) and returns the assembled instructions text used by the agent.
+
+        Args:
+            new_message: The user's latest message (query) to use for similarity search.
+
+        Returns:
+            A single string containing the initial instructions followed by relevant
+            hint/document chunks and a section with memory addresses of interest.
+        """
+        # Search the documents vector DB for documents relevant to this message
+        print_to_console('Searching vector DB for relevant documents...', 'yellow')
+        documents_text = self._retrieve_from_vector_db(
+            self._vectordb_documents,
+            new_message,
+            _K_FOR_DOCUMENTS,
+            _SIMILARITY_FOR_DOCUMENTS,
+            space_chunks=True,
+        )
+
+        # Search the hints vector DB for hints relevant to this message
+        print_to_console('Searching vector DB for relevant hints...', 'yellow')
+        hints_text = self._retrieve_from_vector_db(
+            self._vectordb_hints,
+            new_message,
+            _K_FOR_HINTS,
+            _SIMILARITY_FOR_HINTS,
+            space_chunks=False,
+        )
+
+        # Search the addresses vector DB for memory addresses relevant to this message
+        print_to_console('Searching vector DB for relevant memory addresses...', 'yellow')
+        addresses_text = self._retrieve_from_vector_db(
+            self._vectordb_addresses,
+            new_message,
+            _K_FOR_ADDRESSES,
+            _SIMILARITY_FOR_ADDRESSES,
+            space_chunks=True,
+        )
+
+        # create instructions text from concatenation of entire initial instructions document
+        # (at data/training/langchain/initial-instructions.md) and the top-k chunks from
+        # the hints document (at data/training/langchain/hints.md - every bullet becomes a chunk)
+        instructions_text = self._initial_instructions + "\n" + hints_text + "\n" + documents_text
+        instructions_text += "\n\n#Memory Addresses of Interest\n\n" + addresses_text
+
+        return instructions_text
 
 
     # Use the Template Method Pattern to define code that should be

@@ -20,13 +20,6 @@ import warnings
 from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
-_K_FOR_HINTS = 3
-_K_FOR_DOCUMENTS = 5
-_K_FOR_ADDRESSES = 20
-_SIMILARITY_FOR_HINTS = 0.4
-_SIMILARITY_FOR_DOCUMENTS = 0.6
-_SIMILARITY_FOR_ADDRESSES = 0.5
-
 # Module-level cumulative stat counters (persist for lifetime of process)
 # Protected by _cumulative_lock when updated.
 _cumulative_lock = threading.Lock()
@@ -90,41 +83,7 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         start_time = time.perf_counter()
 
-        # Search the documents vector DB for documents relevant to this message
-        print_to_console('Searching vector DB for relevant documents...', 'yellow')
-        documents_text = self._retrieve_from_vector_db(
-            self._vectordb_documents,
-            new_message,
-            _K_FOR_DOCUMENTS,
-            _SIMILARITY_FOR_DOCUMENTS,
-            space_chunks=True,
-        )
-
-        # Search the hints vector DB for hints relevant to this message
-        print_to_console('Searching vector DB for relevant hints...', 'yellow')
-        hints_text = self._retrieve_from_vector_db(
-            self._vectordb_hints,
-            new_message,
-            _K_FOR_HINTS,
-            _SIMILARITY_FOR_HINTS,
-            space_chunks=False,
-        )
-
-        # Search the addresses vector DB for memory addresses relevant to this message
-        print_to_console('Searching vector DB for relevant memory addresses...', 'yellow')
-        addresses_text = self._retrieve_from_vector_db(
-            self._vectordb_addresses,
-            new_message,
-            _K_FOR_ADDRESSES,
-            _SIMILARITY_FOR_ADDRESSES,
-            space_chunks=True,
-        )
-
-        # create instructions text from concatenation of entire initial instructions document
-        # (at data/training/langchain/initial-instructions.md) and the top-k chunks from
-        # the hints document (at data/training/langchain/hints.md - every bullet becomes a chunk)
-        instructions_text = self._initial_instructions + "\n" + hints_text + "\n" + documents_text
-        instructions_text += "\n\n#Memory Addresses of Interest\n\n" + addresses_text
+        instructions_text = self._retrieve_instructions(new_message)
 
         with get_openai_callback() as cb:
             result = self._executor.run({"input": new_message, "instructions": instructions_text, "history": messages})
@@ -178,15 +137,4 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
         # Use json.dumps to ensure all characters (quotes, backslashes, newlines,
         # and other control characters) are properly escaped.
         return json.dumps({"answer": str(result)})
-
-
-def create_langchain_client(config: Dict[str, any]):
-    """Simple constructor helper for the OpenAI langchain client.
-
-    This keeps instantiation local to the provider module and avoids a
-    separate registry/factory when only one provider is used.
-    """
-    provider = (config.get("LLM_PROVIDER") or "openai").lower()
-    if provider != "openai":
-        raise ValueError(f"Only 'openai' provider supported by this factory: got '{provider}'")
-    return OpenAILangchainLlmClient(config)
+    
