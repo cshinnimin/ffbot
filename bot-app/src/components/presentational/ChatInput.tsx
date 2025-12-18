@@ -14,7 +14,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
   const [input, setInput] = React.useState("");
   const { llmMessagesRef } = useLlmMessages();
 
-  const hasMessages = llmMessagesRef.current.length > 0;
+  // disable the input if we are using a Chat Completion provider and we haven't
+  // sent the training message yet (not relevant for Langchain provider since
+  // training is done on every message by pulling ony relevant instructions
+  // from the vector database in that case)
+  const llmProvider = import.meta.env.LLM_PROVIDER;
+  const disableInput = !llmProvider.includes('langchain') && llmMessagesRef.current.length == 0;
 
   const handleSend = () => {
     if (input.trim() !== "") {
@@ -37,12 +42,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
             handleSend();
           }
         }}
-        disabled={inputSpinnerOn || !hasMessages}
-        aria-disabled={inputSpinnerOn || !hasMessages}
-        style={inputSpinnerOn || !hasMessages ? { cursor: 'default' } : undefined}
+        disabled={inputSpinnerOn || disableInput}
+        aria-disabled={inputSpinnerOn || disableInput}
+        style={inputSpinnerOn || disableInput ? { cursor: 'default' } : undefined}
       />
       <div className="flex justify-end gap-2 items-center">
-        {!hasMessages && !inputSpinnerOn && !fullSpinnerOn && (
+        {disableInput && !inputSpinnerOn && !fullSpinnerOn && (
           <span className="start-conversation-arrow" aria-hidden="true">➡️</span>
         )}
         <button
@@ -58,8 +63,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onRestartLlm, inputSpinne
         <button
           className="btn rounded-lg bg-[#0000FF] text-white hover:bg-blue-800 flex items-center justify-center min-w-[80px]"
           onClick={handleSend}
-          disabled={inputSpinnerOn || !hasMessages}
-          aria-disabled={inputSpinnerOn || !hasMessages}
+          disabled={inputSpinnerOn || disableInput}
+          aria-disabled={inputSpinnerOn || disableInput}
         >
           {inputSpinnerOn ? (
             <span className="loading loading-spinner loading-sm"></span>

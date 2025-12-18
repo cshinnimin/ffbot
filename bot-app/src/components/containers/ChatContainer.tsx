@@ -5,7 +5,7 @@ import ChatLayout from '../presentational/ChatLayout';
 import { useAppMessages } from '../../context/AppMessagesContext';
 import { useLlm, convertAppMessageToLlmMessage } from '../../hooks/useLlm';
 import { useLlmMessages } from '../../references/LlmMessagesRef';
-import trainingMessage from '../../assets/symlinks/training/v0_1_4.md?raw';
+import trainingMessage from '../../assets/symlinks/training/chat-completion/initial-instructions.md?raw';
 
 function ChatContainer() {
   // first import what we need from context/state
@@ -13,6 +13,7 @@ function ChatContainer() {
   
   // second, import what we need from hooks
   const { sendLlmMessage } = useLlm();
+  const { clearLlmMessages } = useLlmMessages();
 
   // Spinner state
   const [fullSpinnerOn, setFullSpinner] = React.useState(false);
@@ -34,9 +35,9 @@ function ChatContainer() {
     }
   };
 
-  const { clearLlmMessages } = useLlmMessages();
-  const handleNewConversation = async () => {
-  setFullSpinner(true);
+  // New Conversation handler used when running with a ChatCompletion provider
+  const handleNewChatCompletionConversation = async () => {
+    setFullSpinner(true);
 
     try {
       clearLlmMessages();
@@ -68,12 +69,21 @@ function ChatContainer() {
     }
   };
 
+  // New Conversation handler used when running with a LangChain provider
+  const handleNewLangchainConversation = () => {
+    clearLlmMessages();
+    clearAppMessages();
+    addAppMessage('Bot', 'I am ready. Training was instantaneous.');
+  };
+
+  const llmProvider = import.meta.env.LLM_PROVIDER;
+
   return (
     <ChatLayout spinnerOn={fullSpinnerOn}>
       <ChatWindow appMessages={appMessages} />
       <ChatInput
         onSend={handleSend}
-        onRestartLlm={handleNewConversation}
+        onRestartLlm={llmProvider.includes('langchain') ? handleNewLangchainConversation : handleNewChatCompletionConversation}
         inputSpinnerOn={inputSpinnerOn}
         fullSpinnerOn={fullSpinnerOn}
       />

@@ -69,9 +69,9 @@ export function useLlm() {
   // Non-streaming LLM message
   const sendLlmMessage = useCallback(async (llmMessage: LlmMessage) => {
     addLlmMessage(llmMessage.role, llmMessage.content);
-  const response = await getLlmResponse(llmMessagesRef.current);
-  // getLlmResponse now returns the assistant's answer string directly
-  addLlmMessage('assistant', response);
+    const response = await getLlmResponse(llmMessagesRef.current);
+    // getLlmResponse now returns the assistant's answer string directly
+    addLlmMessage('assistant', response);
 
     // Use LlmResponse type to track both answerString and transientResponse
     let llmResponse: LlmResponse = {

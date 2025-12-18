@@ -10,7 +10,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ persona, message }) => {
   const chatClass = persona === 'User' ? 'chat chat-start' : 'chat chat-end';
   const headerText = persona === 'Bot' ? 'FFBot' : 'Adventurer';
 
+  // Replace literal escaped sequences with actual characters so the
+  // chat bubble shows newlines and tabs as intended.
+  const formattedMessage = message
+    .replace(/\\r\\n/g, '\r\n') // convert carriage returns
+    .replace(/\\n/g, '\n') // convert newlines
+    .replace(/\\t/g, '\t') // convert tabs
+    .replace(/\\u2014/g, '\u2014'); // convert em dashes (double-width dashes)
+
   const avatarSrc = persona === 'User' ? '/images/user-avatar.png' : '/images/ffbot-avatar.png';
+  
   return (
     <div className={chatClass}>
       <div className="chat-image avatar">
@@ -24,7 +33,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ persona, message }) => {
       <div className="chat-header">
         {headerText}
       </div>
-      <div className="chat-bubble">{message}</div>
+      <div className="chat-bubble whitespace-pre-wrap">{formattedMessage}</div>
     </div>
   );
 };

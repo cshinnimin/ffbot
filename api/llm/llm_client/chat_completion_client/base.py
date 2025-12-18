@@ -1,10 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Dict, List, Optional
+
+from .. import LlmClient
 import requests
-import os
-import sys
 import threading
 import time
+
+from api.utils.console import print_to_console
+from api.utils.math import safe_int
 
 # Module-level cumulative token counters (persist for lifetime of process)
 # They are protected by _cumulative_lock when updated.
@@ -15,37 +18,21 @@ _cumulative_prompt_tokens = 0
 _cumulative_completion_tokens = 0
 _cumulative_cached_tokens = 0
 
-
-# Interface (Base Class) for all LLM clients
-class LlmClient(ABC):
+# Base class for all Chat Completion clients
+class ChatCompletionLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
-        self.config = config
-
-    # Private helper to safely coerce values to integers
-    def _safe_int(self, v: Any) -> int:
-        try:
-            return int(v) if v is not None else 0
-        except Exception:
-            return 0
-
+        super().__init__(config)
 
     # Helper method for sending the payload and printing information about the request to the console
     # A leading underscore in the name signals (by convention) the method is internal / protected
     def _post(self, url: str, headers: Dict[str, str], payload: Dict[str, Any], timeout: int = 60) -> Any:
         """Send a POST request with JSON and return parsed JSON."""
-        # Step 1 - Check whether to use colour in terminal logging
-        USE_COLOUR = sys.stdout.isatty() and not os.environ.get('NO_COLOR')
-
         # Step 2 - Print information about LLM API endpoint URL, model, and cumulative usage count
         global _cumulative_api_messages
         post_label = f"[{self.__class__.__name__}] POST {url} model={payload.get('model')} msgs={len(payload.get('messages', []))}"
         api_count_string = f"[{self.__class__.__name__}] API Message Count : {_cumulative_api_messages}"
-        if USE_COLOUR:
-            print(f"\x1b[1;33m{post_label}\x1b[0m")
-            print(f"\x1b[1;33m{api_count_string}\x1b[0m")
-        else:
-            print(post_label)
-            print(api_count_string)
+        print_to_console(post_label, 'yellow')
+        print_to_console(api_count_string, 'yellow')
 
         # Step 3 - POST the message to the LLMs API and load the JSON response in to `data` variable
         start_time = time.perf_counter()
@@ -57,10 +44,10 @@ class LlmClient(ABC):
 
         # Step 4 - Get token usage from response, if present
         usage = data.get('usage') if isinstance(data, dict) else {}
-        prompt_count = self._safe_int(usage.get('prompt_tokens'))
-        completion_count = self._safe_int(usage.get('completion_tokens'))
+        prompt_count = safe_int(usage.get('prompt_tokens'))
+        completion_count = safe_int(usage.get('completion_tokens'))
         prompt_token_details = usage.get('prompt_tokens_details') if isinstance(usage, dict) else {}
-        cached_count = self._safe_int(prompt_token_details.get('cached_tokens') if isinstance(prompt_token_details, dict) else None)
+        cached_count = safe_int(prompt_token_details.get('cached_tokens') if isinstance(prompt_token_details, dict) else None)
 
         # Step 5 - Update module-level cumulative counters in a thread-safe way
         global _cumulative_prompt_tokens, _cumulative_completion_tokens, _cumulative_cached_tokens, _cumulative_api_seconds
@@ -79,24 +66,15 @@ class LlmClient(ABC):
         if cached_count is not None:
             cached_string = f"[{self.__class__.__name__}] Cached Tokens     : {cached_count} (Total: {_cumulative_cached_tokens})"
 
-        # Step 7 - Print token information to the terminal console
-        if USE_COLOUR:
-            if time_string: print(f"\x1b[1;33m{time_string}\x1b[0m")
-            if prompt_string: print(f"\x1b[1;33m{prompt_string}\x1b[0m")
-            if cached_string: print(f"\x1b[1;33m{cached_string}\x1b[0m")
-            if completion_string: print(f"\x1b[1;33m{completion_string}\x1b[0m")
-        else:
-            if time_string: print(time_string)
-            if prompt_string: print(prompt_string)
-            if cached_string: print(cached_string)
-            if completion_string: print(completion_string)
+        # Step 7 - Print token information to the terminal console using helper
+        print_to_console(time_string, 'yellow')
+        print_to_console(prompt_string, 'yellow')
+        print_to_console(cached_string, 'yellow')
+        print_to_console(completion_string, 'yellow')
 
         return data
 
     @abstractmethod
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> str:
-        """ Return the assistant's answer as a plain string."""
-        
+    def chat(self, messages: List[Dict[str, Any]]) -> str:
+        """Return the assistant's answer as a plain string."""
         raise NotImplementedError
-
-

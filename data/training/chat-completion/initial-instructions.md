@@ -65,7 +65,7 @@ This training data provides you, the FFBot, with memory addresses you might need
     have crown? 0x006022
     have crystal? 0x006023
     have herb? 0x006024
-    have mystic key? 0x006025
+    have key? 0x006025
     have TNT? 0x006026
     have adamant? 0x006027
     have slab? 0x006028
@@ -327,7 +327,7 @@ To request the list of monsters found in a cell:
 
 ## Inside Monster Service
 
-To request a list of monsters found in a town, castle, cave or dungeon, same as an Outside Monster Service request, but <location> is a lowercase snake of the location name with symbols removed, comma, floor, all wrapped in brackets (example `(temple_of_fiends_present,1F)`)
+To request a list of monsters found in a town, castle, cave or dungeon, same as an Outside Monster Service request, but <location> is a lowercase snake of the location name with symbols removed, comma, floor, all wrapped in brackets (examples: `(temple_of_fiends_present,1f)`, `(ice_cave,b2)`). To know which floor you are on, check memory address 0x000048.
 
 ## Reverse Monster Lookup
 

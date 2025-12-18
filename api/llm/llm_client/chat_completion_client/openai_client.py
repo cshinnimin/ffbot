@@ -2,12 +2,11 @@ import os
 from typing import Any, Dict, List, Optional
 import requests
 
-from .base import LlmClient
+from .base import ChatCompletionLlmClient
 
-
-class OpenAIClient(LlmClient):
-    def chat(self, messages: List[Dict[str, Any]], temperature: Optional[float] = None) -> Dict[str, Any]:
-        url = self.config.get("LLM_URL") or "https://api.openai.com/v1/chat/completions"
+class OpenAIChatCompletionLlmClient(ChatCompletionLlmClient):
+    def chat(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+        url = "https://api.openai.com/v1/chat/completions"
         model = self.config.get("LLM_MODEL")
         api_key = self.config.get("LLM_API_KEY") or os.environ.get("LLM_API_KEY")
 
@@ -20,7 +19,7 @@ class OpenAIClient(LlmClient):
             "model": model,
             "messages": messages,
             "stream": False,
-            "temperature": temperature if temperature is not None else self.config.get("LLM_TEMPERATURE")
+            "temperature": self.config.get("LLM_TEMPERATURE", 1)
         }
 
         data = self._post(url, headers, payload, timeout=60)
@@ -34,5 +33,3 @@ class OpenAIClient(LlmClient):
         except Exception:
             # Fallback: return the raw JSON as string
             return str(data)
-
-

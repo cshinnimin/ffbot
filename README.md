@@ -52,7 +52,7 @@ Copy `.env-sample` to `.env` and update any configuration variables.
 * `ROM_FILE`: The location of the Final Fantasy ROM file on your local machine.
 * `LUA_PACKAGE_DIR`: The location on the local machine where LUA packages reside. The LUA Daemon in scripts/lua will need this to load its dependencies.
 * `LLM_PROVIDER`: The LLM service we want to use. This is important since different services have different APIs and our end of the API needs to know how to interface correctly. There is currently support for OpenAI (`openai`), OpenRouter.ai (`openrouter`) or local Ollama (`ollama`).
-* `LLM_URL`: The chat completion endpoint for the LLM provider of your choice.
+* `LLM PORT`: The port for the LLM service. Only required if using a local service.
 * `LLM_API_KEY`: The API key for the LLM of your choice, if applicable. Local LLMs running on Ollama do not require an API key.
 * `LLM_MODEL`: The model of your chosen LLM.
 * `LLM_THROTTLE_DELAY`: In milliseconds, a forced delay between LLM chat completion requests. Use this to throttle the app if your chosen model is returning 429 "Too Many Request" responses. The FFBot app may require multiple chat completion requests under the hood for each response seen in the chat window, so actual response times in the app may be longer than this value.
