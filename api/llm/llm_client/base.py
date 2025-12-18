@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 class LlmClient(ABC):
     """Top-level abstraction for all LLM clients."""

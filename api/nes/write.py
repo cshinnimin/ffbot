@@ -32,7 +32,6 @@ def write_addresses(addresses_json):
 
 	for addr_map in addresses_list:
 		for addr, val in addr_map.items():
-			addr_literal = addr
 			if isinstance(addr, str):
 				addr_strip = addr.strip()
 				if addr_strip.lower().startswith('0x'):

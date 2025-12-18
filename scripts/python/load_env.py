@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
 
 def load_env() -> bool:
     """
@@ -45,7 +44,7 @@ def load_env() -> bool:
                         if k and k not in os.environ:
                             os.environ[k] = v
                 print(f"Loaded .env (manual) from {dotenv_path}")
-                
+
                 return True
             except Exception:
                 # Give up silently

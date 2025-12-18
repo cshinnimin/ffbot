@@ -1,7 +1,6 @@
 import json
 from typing import Dict, Any, Tuple, List
 from .config import get_config
-from .read import read_addresses
 from .write import write_addresses
 from langchain.tools import tool
 

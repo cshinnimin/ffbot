@@ -14,7 +14,7 @@ from pathlib import Path
 
 # Add folders where imports live to sys.path so package imports work
 API_DIR = Path(__file__).resolve().parents[3]
-LOAD_ENV_DIR = Path(__file__).resolve().parents[1];
+LOAD_ENV_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_DIR))
 sys.path.insert(0, str(LOAD_ENV_DIR))
 

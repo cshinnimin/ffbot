@@ -10,7 +10,6 @@ repository root is on `sys.path`, import `order_party`, call it, and print
 the result.
 """
 import sys
-import os
 import argparse
 from pathlib import Path
 

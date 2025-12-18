@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Tuple, List
 from .config import get_config
 from .read import read_addresses
 from langchain.tools import tool

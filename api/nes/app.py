@@ -13,8 +13,6 @@ def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app)
 
-    config = get_config()
-
     @app.route('/nes/write-lua', methods=['POST', 'OPTIONS'])
     def _write_lua_route():
         if request.method == 'OPTIONS':
