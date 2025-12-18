@@ -27,9 +27,49 @@ luarocks install lunajson
 /home/linuxbrew/.linuxbrew/Cellar/luarocks/3.12.2/share/lua/5.4/
 ```
 
-### Install Python and Flask
+### Install Python, Flask, Langchain, ChromaDB and Dependencies
 
 The React bot app needs the ability to write a file to the RAMdisk in order to write contents back to NES memory. This is accomplished by exposing a simple API endpoint using Python / Flask.
+
+In order to faciliate loading of data for the LLM, splitting (chunking) the data and embedding the data in a vector store we need to install Langchain and ChromaDB. This was found to be stable on python version 3.12.11, so we will use a python environment manager to install this version specifically. 
+
+* Install **pyenv** to manage Python versions (as per [pyenv README](https://github.com/pyenv/pyenv)):
+```
+curl -fsSL https://pyenv.run | bash
+```
+
+* Add the following lines to .bashrc to set up pyenv on terminal load:
+```
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - bash)"
+eval "$(pyenv virtualenv-init -)"
+```
+
+* Open a new terminal window and validate pyemv installation with:
+```
+pyenv versions
+```
+
+* Install poppler-utils (used for PDF conversions if PDFs are desired as document sources):
+```
+sudo dnf install -y poppler-utils
+```
+
+* Install sqlite (used by ChromaDB, make sure this is done **before** installing the 3.12.11 python version via pyenv or else chromadb will not be importable in python):
+```
+sudo dnf install sqlite-devel
+```
+
+* Install Python version 3.12.11
+```
+pyenv install 3.12.11
+```
+
+* Set Version 3.12.11 as the python version:
+```
+pyenv global 3.12.11
+```
 
 * Install Python and 'pip', Python's package manager:
 ```
@@ -41,6 +81,26 @@ sudo dnf install python3 python3-pip
 ```
 pip install Flask
 pip install Flask-CORS
+```
+
+NOTE: If you wish to continue using the global version of Python you already have installed on your system, you can create a virtual environment for FFBot's python requirements instead. See the pyenv documentation for further instructions.
+
+* Install Langchain, ChromaDB and other tools required:
+```
+pip install langchain &&
+pip install langchain-openai &&
+pip install -U langchain-community &&
+pip install unstructured &&
+pip install openai &&
+pip install chromadb &&
+pip install Cython &&
+pip install tiktoken &&
+pip install unstructured[all] &&
+pip install "unstructured[pdf]" &&
+pip install pdfminer.six &&
+pip install pi_heif &&
+pip install unstructured-inference &&
+pip install --upgrade nltk
 ```
 
 ### Configure React App .env
