@@ -1,0 +1,413 @@
+from typing import Any, Dict, List
+from abc import abstractmethod
+
+from .. import LlmClient
+
+import os, shutil
+from pathlib import Path
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
+from langchain_text_splitters import CharacterTextSplitter
+from langchain.vectorstores import Chroma
+from langchain.chains import LLMChain
+from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
+
+from api.nes.read import read_addresses_tool
+from api.nes.write import write_addresses_tool
+from api.nes.bestiary import get_monsters_by_location_tool, get_locations_by_monster_tool
+from api.nes.names import get_names_tool
+from api.nes.order import order_party_tool
+from api.utils.console import print_to_console
+
+# Defaults for vector DB retrieval used to assemble instructions.
+# These are provider-agnostic and belong in the base class so all
+# concrete clients can reuse the same behavior.
+_K_FOR_HINTS = 3
+_K_FOR_DOCUMENTS = 5
+_K_FOR_ADDRESSES = 20
+_SIMILARITY_FOR_HINTS = 0.4
+_SIMILARITY_FOR_DOCUMENTS = 0.6
+_SIMILARITY_FOR_ADDRESSES = 0.5
+
+# resolve paths relative to the repository root so the code works
+# regardless of the current working directory when scripts are run
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+TRAINING_FOLDER_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain')
+PRECHUNKED_DOCUMENTS_PATH = str(PROJECT_ROOT / 'data' / 'training' / 'langchain' / 'chunks')
+CHROMA_PERSIST_DIRECTORY = str(PROJECT_ROOT / 'data' / 'chroma')
+
+# suppress Langchain deprecation warnings
+import warnings
+from langchain._api import LangChainDeprecationWarning
+warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
+
+class LangchainLlmClient(LlmClient):
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self.config = config
+
+        # load initial instructions that will serve as the QA Chain Template
+        # use a TextLoader rather than an UnstructuredMarkdownLoader so that no attempts
+        # are made to replace <variable> tags or other such placeholders
+        loader = TextLoader(f"{TRAINING_FOLDER_PATH}/initial-instructions.md")
+        documents = loader.load()
+        self._initial_instructions = "\n".join([doc.page_content for doc in documents])
+
+        # create the Tool objects and AgentExecutor
+        self._executor = self._create_executor()
+        self._tools = self._make_tools()
+
+
+    # internal function to create all of the Langchain Tool objects
+    # this allows our agent to call python methods in our API directly
+    # rather than relying on making actual HTTP requests to the endpoints
+    def _make_tools(self) -> List[Tool]:
+        """
+        Create the Tool objects for Langchain to use.
+        """
+        tools = [
+            Tool(
+                name="read_addresses",
+                func=read_addresses_tool,
+                description="""
+                    Reads dynamic RAM values for the given addresses list and translates them into
+                    values meaningful to a human or an LLM.
+
+                    Input: `List[str] addresses`: The requested RAM addresses. Must always be
+                        in hex format with six characters following the '0x'. Example:
+                        ["0x00001C", "0x006110"]
+
+                    Output: `Dict[str,str] result`: The key is the memory address requested and the value 
+                        is its meaningful, human readable value. Example:
+                        {{"0x00001C": "in battle", "0x006110": "25"}}
+
+                """
+            ),
+            Tool(
+                name="write_addresses",
+                func=write_addresses_tool,
+                description="""
+                    Writes values to dynamic RAM addresses. Accepts a JSON string (provided by LLM)
+                    and returns a JSON string result (expected by the LLM).
+
+                    Input: `Dict[str,str] addresses`: A map whose key is the RAM addresses 
+                        to update and whose value is the new value to update to. 
+                        Values must always be integers. Example:
+	                    '[{{"0x006BE4": 50}}, {{"0x006BE5": 0}}]'
+
+                    Output: `str result`: A string confirming a file has been written. Example:
+                        'execute.lua written successfully'
+                """
+            ),
+            Tool(
+                name="get_monsters_by_location",
+                func=get_monsters_by_location_tool,
+                description="""
+                    Retrieves the list of monsters present at a given location.
+
+                    Input: a JSON string containing either a single string or an object with key `location`.
+                      Example: '{{"location":"(Some Location)"}}'
+
+                    Output: JSON string: '{{"monsters": ["Imp","Goblin"]}}'
+                """
+            ),
+            Tool(
+                name="get_locations_by_monster",
+                func=get_locations_by_monster_tool,
+                description="""
+                    Retrieves locations for one or more monsters.
+
+                    Input: a JSON string containing either an array of monster names or an object with key `monsters`.
+                      Example: '{{"monsters":["Goblin","Imps"]}}'
+
+                    Output: JSON string: '{{"locations": {{"Goblin": ["(Loc1)"], "Imp": ["(Loc2)"]}}}}'
+                """
+            ),
+            Tool(
+                name="get_names",
+                func=get_names_tool,
+                description="""
+                    Retrieves the four character names from RAM and returns them as
+                    a JSON object with keys character_1..character_4.
+
+                    Input: optional JSON (ignored).
+
+                    Output: JSON string: '{{"character_1":"ABCD","character_2":"EFGH", ...}}'
+                """
+            ),
+            Tool(
+                name="order_party",
+                func=order_party_tool,
+                description="""
+                    Reorders party stat blocks by copying memory from source slots
+                    into destination slots. Accepts a JSON list like '[2,4,3,1]'.
+
+                    Output: JSON string containing a message about the write operation.
+                """
+            )
+        ]
+        return tools
+    
+
+    # The AgentExecutor is a Langchain class that provides us with multi step reasoning.
+    # This internal method prepares our AgentExecutor
+    def _create_executor(self) -> AgentExecutor:
+        """
+        Create an AgentExecutor for a session that accepts {instructions} and {history} plus {input}.
+        We include the full in-session history via the {history} variable so the agent sees conversation context.
+        """
+        model_name = self.config.get("LLM_MODEL")
+        temperature = self.config.get("LLM_TEMPERATURE", 1)
+        max_attempts = self.config.get("LLM_MAX_ATTEMPTS", 5)
+
+        # Delegate provider-specific LLM creation to the concrete subclass
+        llm = self._get_llm(model_name=model_name, temperature=temperature)
+
+        tools = self._make_tools()
+        # Build a prompt that includes instructions and the conversation history
+        prefix = (
+            "CRITICAL FORMAT REQUIREMENT - READ CAREFULLY:\n"
+            "You MUST output EITHER an Action OR a Final Answer - NEVER BOTH.\n"
+            "Outputting both will cause system failure.\n\n"
+            
+            "Option 1 - Taking an Action (when you need to use a tool):\n"
+            "Action: <tool_name>\n"
+            "Action Input: <JSON list or JSON object>\n\n"
+            
+            "Option 2 - Providing Final Answer (when you have enough information):\n"
+            "Final Answer: <your answer>\n\n"
+            
+            "STOP after whichever option you choose. Do not continue writing.\n\n"
+            
+            "---\n"
+            "OPERATIONAL INSTRUCTIONS:\n{instructions}\n\n"
+            "CONVERSATION HISTORY:\n{history}\n\n"
+        )
+        suffix = "\nUser Input: {input}\n{agent_scratchpad}"
+        agent_prompt = ZeroShotAgent.create_prompt(
+            tools,
+            prefix=prefix,
+            suffix=suffix,
+            input_variables=["input", "instructions", "history", "agent_scratchpad"]
+        )
+
+        llm_chain = LLMChain(llm=llm, prompt=agent_prompt)
+
+        # A zero-shot agent is an LLM-based agent designed to take actions or solve tasks 
+        # without being given any task-specific examples. Instead it relies on a clear
+        # instruction, the model's pretraining knowledge, and descriptions of available
+        # tools/actions to decide what to do. When ZeroShotAgent is used, it builds a prompt
+        # (using the llm_chain you give it) that tells the LLM what it is, what tools exist,
+        # and the exact output format to use. It does not include example input→action pairs 
+        # (that’s what makes it “zero-shot”); instead it relies on clear instructions and tool
+        # descriptions.
+        agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools)
+        executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, stop=None, handle_parsing_errors=True, max_iterations=max_attempts)
+
+        print_to_console()
+        print_to_console('Created AgentExecutor (model = ' + getattr(llm, "model_name", None) + ', temperature = ' + str(temperature) + ').', color='yellow')
+
+        return executor
+    
+
+    # Recreate the 3 vector databases used for the Langchain prompt template
+    # This is a publicly exposed method that can be invoked by external scripts or consumers
+    def recreate_vector_db(self):
+        # clear the chroma persist directories if they exist, so that
+        # we can reload the vector DBs from scratch
+        if os.path.exists(CHROMA_PERSIST_DIRECTORY):
+            shutil.rmtree(CHROMA_PERSIST_DIRECTORY)
+
+        # first load each document in the `chunks` folder
+        # documents in this folder are designed to be single chunks and do not need to be split
+
+        loader = DirectoryLoader(
+            PRECHUNKED_DOCUMENTS_PATH,
+            glob="**/*.md",
+            #loader_cls=UnstructuredMarkdownLoader
+            loader_cls=TextLoader
+        )
+
+        # UnstructuredMarkdownLoader.load returns a List[Document]
+        # Convert each full document into a chunk since this is how these were designed
+        documents = loader.load()
+        document_chunk_strings = [doc.page_content for doc in documents]
+
+        # now load the contents of the hints.md document, this document
+        # is designed to be split by newline as each line will have a
+        # separate context unrelated to any of the others
+
+        loader = TextLoader(f"{TRAINING_FOLDER_PATH}/hints.md")
+        hints = loader.load()
+        hints_text = "\n".join([hint.page_content for hint in hints])
+
+        # chunk_size=1 / chunk_overlap=0 ensures strict splitting on each newline
+        # without these parameters because by default Langchain groups text into 
+        # chunks, not literal splits by the separator
+        # CharacterTextSplitter.split_test returns a List[str]
+        splitter = CharacterTextSplitter(separator="\n", chunk_size=1, chunk_overlap=0)
+        hint_chunk_strings = splitter.split_text(hints_text)
+
+        loader = TextLoader(f"{TRAINING_FOLDER_PATH}/memory-addresses.md")
+        addresses = loader.load()
+        addresses_text = "\n".join([address.page_content for address in addresses])
+
+        # chunk_size=1 / chunk_overlap=0 ensures strict splitting on each newline
+        # without these parameters because by default Langchain groups text into 
+        # chunks, not literal splits by the separator
+        # CharacterTextSplitter.split_test returns a List[str]
+        splitter = CharacterTextSplitter(separator="*", chunk_size=1, chunk_overlap=0)
+        address_chunk_strings = splitter.split_text(addresses_text)
+
+        # create a Chroma DB vector store and add chunks to it as lists of strings
+        embedding = self._get_embeddings()
+        # store the Chroma vector DB on the instance so other methods can access it
+        self._vectordb_documents = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/documents', embedding_function=embedding)
+        self._vectordb_documents.add_texts(document_chunk_strings)
+
+        self._vectordb_hints = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/hints', embedding_function=embedding)
+        self._vectordb_hints.add_texts(hint_chunk_strings)
+
+        self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
+        self._vectordb_addresses.add_texts(address_chunk_strings)
+
+
+    def _retrieve_from_vector_db(self, vectordb, user_input: str, k: int, similarity: float, space_chunks: bool) -> str:
+        """
+        Generic helper to query a vector DB and return concatenated chunk text.
+
+        Args:
+            vectordb: The vector DB instance (must implement similarity_search_with_score).
+            user_input: The query string.
+            k: Number of top-k results to retrieve.
+            similarity: The maximum allowed score (lower is more similar). Only chunks with
+                score <= similarity are returned.
+            space_chunks: If True, join chunks with a double newline ("\n\n"), otherwise
+                join with a single newline ("\n").
+
+        Returns:
+            The joined string of the selected chunk texts (empty string when none match).
+            Between 0 to k chunks will be returned depending on how many meet the similarity threshold.
+        """
+        # similarity_search_with_score returns List[Tuple[Document, float]]
+        # pass k*2 in to similarity_search_with_score method so we can see information in
+        # the console about which chunks were not returned as well
+        chunks = vectordb.similarity_search_with_score(user_input, k=k*2)
+
+        selected_texts: List[str] = []
+        joiner = "\n\n" if space_chunks else "\n"
+
+        for chunk, score in chunks:
+            # Log the similarity score and a preview for all top-k chunks retrieved for debugging.
+            # Replace newlines with spaces so the console output stays on one line
+            preview = chunk.page_content.replace("\n", " ")[:60]
+            preview_colour = ""
+
+            if score <= similarity and len(selected_texts) < k:
+                # if the score is nearer than the specified similarity threshold,
+                # add it to selected_text so we can return it
+                selected_texts.append(chunk.page_content)
+                preview_colour = "green"
+                
+            print_to_console(f"{score:.3f}: {preview}", preview_colour)
+                
+        return joiner.join(selected_texts)
+
+
+    def _retrieve_instructions(self, new_message: str) -> str:
+        """
+        Provider-agnostic helper that queries the three vector DBs (documents, hints,
+        and addresses) and returns the assembled instructions text used by the agent.
+
+        Args:
+            new_message: The user's latest message (query) to use for similarity search.
+
+        Returns:
+            A single string containing the initial instructions followed by relevant
+            hint/document chunks and a section with memory addresses of interest.
+        """
+        # Search the documents vector DB for documents relevant to this message
+        print_to_console('Searching vector DB for relevant documents...', 'yellow')
+        documents_text = self._retrieve_from_vector_db(
+            self._vectordb_documents,
+            new_message,
+            _K_FOR_DOCUMENTS,
+            _SIMILARITY_FOR_DOCUMENTS,
+            space_chunks=True,
+        )
+
+        # Search the hints vector DB for hints relevant to this message
+        print_to_console('Searching vector DB for relevant hints...', 'yellow')
+        hints_text = self._retrieve_from_vector_db(
+            self._vectordb_hints,
+            new_message,
+            _K_FOR_HINTS,
+            _SIMILARITY_FOR_HINTS,
+            space_chunks=False,
+        )
+
+        # Search the addresses vector DB for memory addresses relevant to this message
+        print_to_console('Searching vector DB for relevant memory addresses...', 'yellow')
+        addresses_text = self._retrieve_from_vector_db(
+            self._vectordb_addresses,
+            new_message,
+            _K_FOR_ADDRESSES,
+            _SIMILARITY_FOR_ADDRESSES,
+            space_chunks=True,
+        )
+
+        # create instructions text from concatenation of entire initial instructions document
+        # (at data/training/langchain/initial-instructions.md) and the top-k chunks from
+        # the hints document (at data/training/langchain/hints.md - every bullet becomes a chunk)
+        instructions_text = self._initial_instructions + "\n" + hints_text + "\n" + documents_text
+        instructions_text += "\n\n#Memory Addresses of Interest\n\n" + addresses_text
+
+        return instructions_text
+
+
+    # Use the Template Method Pattern to define code that should be
+    # executed for all concrete instances of the base class 
+    def chat(self, messages: List[Dict[str, Any]]):
+        """
+        Publicly exposed method that ensures the vectordb is loaded,
+        then delegates control to the implememtations of _chat
+        in the concrete provider classes (Template Method Pattern)
+        """
+        new_message = messages[-1].get("content", "") if messages else ""
+        print_to_console()
+        print_to_console('Calling provider chat() method with message:', 'yellow')
+        print_to_console(new_message, 'cyan')
+        print_to_console()
+
+        if not os.path.exists(CHROMA_PERSIST_DIRECTORY):
+            # If the Chroma persist directory is missing, create the vector DB now.
+            # This ensures a persisted vector store is available for use.
+            print_to_console('No vector databases found. Creating new...', 'yellow')
+            self.recreate_vector_db()
+            print_to_console('Vector databases created.', 'yellow')
+        else:
+            # Otherwise just load the existing vector DB
+            print_to_console('Existing vector databases found. Loading...', 'yellow')
+            embedding = self._get_embeddings()
+            self._vectordb_documents = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/documents', embedding_function=embedding)
+            self._vectordb_hints = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/hints', embedding_function=embedding)
+            self._vectordb_addresses = Chroma(persist_directory=CHROMA_PERSIST_DIRECTORY + '/addresses', embedding_function=embedding)
+            print_to_console('Vector databases loaded.', 'yellow')
+
+        return self._chat(messages)
+
+    # Complete the Template Method Pattern by defining the abstract
+    # method the concrete classes are forced to implement
+    @abstractmethod
+    def _chat(self, messages: List[Dict[str, Any]]) -> str:
+        """Return the assistant's answer as a plain string."""
+        raise NotImplementedError
+
+
+    @abstractmethod
+    def _get_llm(self, model_name: str, temperature: float):
+        """Return a provider-specific LLM instance compatible with LangChain."""
+
+
+    @abstractmethod
+    def _get_embeddings(self):
+        """Return a provider-specific embeddings instance (callable for Chroma)."""

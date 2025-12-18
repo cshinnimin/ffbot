@@ -86,3 +86,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Local data used by Chroma vector DB
+data/chroma/

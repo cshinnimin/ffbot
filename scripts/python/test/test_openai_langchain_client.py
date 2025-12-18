@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Test script for OpenAIClient
+Test script for OpenAILangchainLlmClient
 
 Usage:
-  python test_openai_client.py "Hi"
+  python test_openai_langchain_client.py "Hi"
 
 This script will instantiate the client, and print the response
 """
@@ -21,11 +21,11 @@ sys.path.insert(0, str(LOAD_ENV_DIR))
 from load_env import load_env
 load_env()
 
-# Import the OpenAIChatCompletionLlmClient
+# Import the OpenAILangchainLlmClient
 try:
-    from api.llm.llm_client.chat_completion_client.openai_client import OpenAIChatCompletionLlmClient
+    from api.llm.llm_client.langchain_client.openai_langchain_client import OpenAILangchainLlmClient
 except Exception as e:
-    print("Failed to import OpenAIChatCompletionLlmClient:", e)
+    print("Failed to import OpenAILangchainLlmClient:", e)
     sys.exit(1)
 
 message = sys.argv[1] if len(sys.argv) > 1 else "Hello from CLI, respond briefly."
@@ -43,7 +43,7 @@ config = {
     "LLM_TEMPERATURE": _maybe_float(os.environ.get("LLM_TEMPERATURE")),
 }
 
-client = OpenAIChatCompletionLlmClient(config)
+client = OpenAILangchainLlmClient(config)
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": message},

@@ -1,40 +1,15 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useLlmMessages } from '../references/LlmMessagesRef';
-// @ts-ignore, ignore symlink error, will be resolved at runtime
-import bestiaryData from '../../public/symlinks/ramdisk/bestiary.json';
 import { getLlmResponse } from "../api/llmApi";
+import { getMonstersByLocation, getLocationsByMonster } from "../api/nesApi";
 import { BestiaryRequestInvalidFormatError } from "../types/Error";
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
-
-// Types for the bestiary data
-export type BestiaryMap = Record<string, string[]>;
-export type ReverseBestiaryMap = Record<string, string[]>;
 
 export function useBestiaryRequest() {
   // import llmMessages
 	const { llmMessagesRef, addLlmMessage } = useLlmMessages();
   
-  // Build maps only once for the app lifecycle, bestiary
-  // information does not change like RAM information does
-  // ( useMemo() caches the information )
-  const { bestiary, reverseBestiary } = useMemo(() => {
-    const bestiary: BestiaryMap = bestiaryData as BestiaryMap;
-    const reverseBestiary: ReverseBestiaryMap = {};
-
-    // Helper to normalize monster names for the reverse bestiary keys:
-    // lowercase, remove spaces and symbols
-    const normalize = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    for (const [loc, monsters] of Object.entries(bestiary)) {
-      for (const monster of monsters) {
-        const key = normalize(monster);
-        if (!reverseBestiary[key]) reverseBestiary[key] = [];
-        reverseBestiary[key].push(loc);
-      }
-    }
-    return { bestiary, reverseBestiary };
-  }, []);
 
   
   const requestMonstersByLocation = useCallback(async (location: string): Promise<string[]> => {
@@ -43,7 +18,8 @@ export function useBestiaryRequest() {
       throw new BestiaryRequestInvalidFormatError('I cannot seem to retrieve the required information from the bestiary.');
     }
 
-    const monsters = bestiary[location] || ["no monsters here"];
+    // Fetch monsters from backend
+    const monsters = await getMonstersByLocation(location);
     addLlmMessage('user', JSON.stringify({monsters: monsters}));
 
     if (DEBUG_MODE) {
@@ -68,21 +44,8 @@ export function useBestiaryRequest() {
    */
   const requestLocationsByMonster = useCallback(async (monsters: string[]): Promise<Record<string, string[]>> => {
 
-    // Strip trailing 's' from entries unless 'cerebus' or 'chaos', since no other
-    // monsters in the game end with S
-    const normalizedMonsters = monsters.map(monster => {
-      if ((monster.toLowerCase() !== 'cerebus' && monster.toLowerCase() !== 'chaos') && monster.endsWith('s')) {
-        return monster.slice(0, -1);
-      }
-      return monster;
-    });
-
-    const locationsObj: Record<string, string[]> = {};
-    for (let i = 0; i < monsters.length; i++) {
-      const monster = normalizedMonsters[i];
-      const locations = reverseBestiary[monster] || ["monster not found"];
-      locationsObj[monster] = locations;
-    }
+    // Fetch locations from backend
+    const locationsObj = await getLocationsByMonster(monsters);
 
     addLlmMessage('user', JSON.stringify({ locations: locationsObj }));
 
@@ -91,7 +54,7 @@ export function useBestiaryRequest() {
       console.log(llmMessagesRef.current);
     }
 
-  const response = await getLlmResponse(llmMessagesRef.current);
+    const response = await getLlmResponse(llmMessagesRef.current);
     addLlmMessage('assistant', response);
 
     if (DEBUG_MODE) {
@@ -100,7 +63,7 @@ export function useBestiaryRequest() {
     }
 
     return response;
-  }, [addLlmMessage, reverseBestiary]);
+  }, [addLlmMessage]);
 
   return {
     requestMonstersByLocation,

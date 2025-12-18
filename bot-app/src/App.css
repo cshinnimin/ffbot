@@ -9,3 +9,9 @@
 	0% { transform: translateX(0); }
 	100% { transform: translateX(10px) scale(1.1); }
 }
+
+/* Ensure tab characters in chat bubbles render with a consistent width */
+.chat-bubble {
+    tab-size: 4;
+    -moz-tab-size: 4;
+}
