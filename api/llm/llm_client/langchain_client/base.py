@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from abc import abstractmethod
 
 from .. import LlmClient
 
 import os, shutil
 from pathlib import Path
-from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader, TextLoader
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.chains import LLMChain
@@ -30,7 +30,6 @@ import warnings
 from langchain._api import LangChainDeprecationWarning
 warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
-
 class LangchainLlmClient(LlmClient):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
@@ -48,6 +47,9 @@ class LangchainLlmClient(LlmClient):
         self._tools = self._make_tools()
 
 
+    # internal function to create all of the Langchain Tool objects
+    # this allows our agent to call python methods in our API directly
+    # rather than relying on making actual HTTP requests to the endpoints
     def _make_tools(self) -> List[Tool]:
         """
         Create the Tool objects for Langchain to use.
@@ -136,6 +138,8 @@ class LangchainLlmClient(LlmClient):
         return tools
     
 
+    # The AgentExecutor is a Langchain class that provides us with multi step reasoning.
+    # This internal method prepares our AgentExecutor
     def _create_executor(self) -> AgentExecutor:
         """
         Create an AgentExecutor for a session that accepts {instructions} and {history} plus {input}.

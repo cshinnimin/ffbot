@@ -73,25 +73,6 @@ class OpenAILangchainLlmClient(LangchainLlmClient):
 
         super().__init__(config)
 
-
-    def _make_tools(self) -> List[Any]:
-        """
-        Create the Tool objects for Langchain to use.
-        """
-        # The tool creation implementation is provided by the base class.
-        # Subclasses can override this if they need different tools.
-        return super()._make_tools()
-
-    def _create_executor(self) -> Any:
-        """
-        Create an AgentExecutor for a session that accepts {instructions} and {history} plus {input}.
-        We include the full in-session history via the {history} variable so the agent sees conversation context.
-        """
-        
-        # The executor construction is provided by the base class. Subclasses
-        # may override this if they need custom behaviour.
-        return super()._create_executor()
-
     # Provider factory used by base class to create the LLM instance
     def _get_llm(self, model_name: str, temperature: float):
         # Use a SafeChatOpenAI to specify the LLM. This is a custom wrapper
